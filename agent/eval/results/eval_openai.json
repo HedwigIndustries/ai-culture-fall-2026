@@ -1,0 +1,1758 @@
+{
+  "summary": {
+    "cases": 120,
+    "by_severity": {
+      "blocker": 20,
+      "major": 20,
+      "minor": 20,
+      "nit": 20,
+      "none": 20,
+      "question": 20
+    },
+    "rules": {
+      "recall": 0.18,
+      "recall_blocker": 0.25,
+      "false_alarm": 0.25
+    },
+    "llm": {
+      "recall": 0.69,
+      "recall_blocker": 0.55,
+      "false_alarm": 0.65
+    },
+    "all": {
+      "recall": 0.77,
+      "recall_blocker": 0.7,
+      "false_alarm": 0.75
+    },
+    "model": "qwen/qwen3.5-plus-20260420",
+    "llm_calls": 118,
+    "no_added_lines": 2,
+    "llm_skipped": 0,
+    "llm_errors": 0,
+    "input_tokens_mean": 747,
+    "output_tokens_mean": 171,
+    "seconds_mean": 3.2
+  },
+  "cases": [
+    {
+      "review_id": "1358",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [
+        "question",
+        "question"
+      ],
+      "input_tokens": 706,
+      "output_tokens": 171,
+      "seconds": 3.7,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3153",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 511,
+      "output_tokens": 5,
+      "seconds": 1.53,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "448",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 578,
+      "output_tokens": 5,
+      "seconds": 1.42,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3993",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 601,
+      "output_tokens": 84,
+      "seconds": 2.45,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4218",
+      "severity": "blocker",
+      "rules": [
+        "STY013"
+      ],
+      "llm": [],
+      "input_tokens": 512,
+      "output_tokens": 172,
+      "seconds": 2.9,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3579",
+      "severity": "blocker",
+      "rules": [
+        "STY003",
+        "STY003"
+      ],
+      "llm": [
+        "blocker",
+        "major",
+        "major"
+      ],
+      "input_tokens": 1092,
+      "output_tokens": 342,
+      "seconds": 5.46,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3913",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 510,
+      "output_tokens": 5,
+      "seconds": 1.03,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "597",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 475,
+      "output_tokens": 93,
+      "seconds": 2.43,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "469",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 498,
+      "output_tokens": 1,
+      "seconds": 0.96,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4512",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 487,
+      "output_tokens": 5,
+      "seconds": 0.92,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4297",
+      "severity": "blocker",
+      "rules": [
+        "STY002"
+      ],
+      "llm": [],
+      "input_tokens": 494,
+      "output_tokens": 5,
+      "seconds": 1.02,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "410",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [
+        "minor",
+        "question"
+      ],
+      "input_tokens": 598,
+      "output_tokens": 181,
+      "seconds": 2.45,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1078",
+      "severity": "blocker",
+      "rules": [
+        "STY001",
+        "STY001"
+      ],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 1608,
+      "output_tokens": 165,
+      "seconds": 3.15,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1088",
+      "severity": "blocker",
+      "rules": [
+        "STY008",
+        "STY021",
+        "STY022",
+        "STY008",
+        "STY003"
+      ],
+      "llm": [],
+      "input_tokens": 1367,
+      "output_tokens": 238,
+      "seconds": 3.92,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3163",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [
+        "question"
+      ],
+      "input_tokens": 476,
+      "output_tokens": 69,
+      "seconds": 1.87,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "918",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 476,
+      "output_tokens": 5,
+      "seconds": 0.87,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3478",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [
+        "blocker"
+      ],
+      "input_tokens": 682,
+      "output_tokens": 307,
+      "seconds": 6.14,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "352",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 640,
+      "output_tokens": 123,
+      "seconds": 2.82,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4044",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 580,
+      "output_tokens": 279,
+      "seconds": 6.08,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2074",
+      "severity": "blocker",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 491,
+      "output_tokens": 94,
+      "seconds": 3.6,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "736",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "minor",
+        "question"
+      ],
+      "input_tokens": 649,
+      "output_tokens": 148,
+      "seconds": 3.74,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2212",
+      "severity": "major",
+      "rules": [
+        "STY006",
+        "STY006"
+      ],
+      "llm": [],
+      "input_tokens": 818,
+      "output_tokens": 5,
+      "seconds": 1.83,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4499",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 644,
+      "output_tokens": 245,
+      "seconds": 5.24,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3412",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 500,
+      "output_tokens": 71,
+      "seconds": 2.38,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2177",
+      "severity": "major",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 552,
+      "output_tokens": 5,
+      "seconds": 1.32,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "740",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "blocker",
+        "major",
+        "minor"
+      ],
+      "input_tokens": 1134,
+      "output_tokens": 357,
+      "seconds": 5.72,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3258",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 654,
+      "output_tokens": 278,
+      "seconds": 4.78,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "511",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 492,
+      "output_tokens": 108,
+      "seconds": 2.4,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1695",
+      "severity": "major",
+      "rules": [
+        "STY020"
+      ],
+      "llm": [
+        "major",
+        "minor",
+        "minor",
+        "question"
+      ],
+      "input_tokens": 1647,
+      "output_tokens": 377,
+      "seconds": 5.88,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "783",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "major",
+        "question"
+      ],
+      "input_tokens": 1603,
+      "output_tokens": 217,
+      "seconds": 3.95,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4821",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 507,
+      "output_tokens": 149,
+      "seconds": 3.06,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "735",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "question"
+      ],
+      "input_tokens": 517,
+      "output_tokens": 117,
+      "seconds": 2.74,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "791",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "question"
+      ],
+      "input_tokens": 557,
+      "output_tokens": 80,
+      "seconds": 2.27,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "733",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "blocker"
+      ],
+      "input_tokens": 614,
+      "output_tokens": 142,
+      "seconds": 2.67,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3197",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 581,
+      "output_tokens": 81,
+      "seconds": 1.8,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3210",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "question"
+      ],
+      "input_tokens": 481,
+      "output_tokens": 53,
+      "seconds": 1.7,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1327",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 560,
+      "output_tokens": 122,
+      "seconds": 2.65,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4396",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "major",
+        "major"
+      ],
+      "input_tokens": 558,
+      "output_tokens": 172,
+      "seconds": 3.41,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "377",
+      "severity": "major",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 695,
+      "output_tokens": 214,
+      "seconds": 3.53,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4280",
+      "severity": "major",
+      "rules": [
+        "STY006",
+        "STY006",
+        "STY006",
+        "STY006",
+        "STY006"
+      ],
+      "llm": [],
+      "input_tokens": 1253,
+      "output_tokens": 243,
+      "seconds": 3.86,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "457",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 1089,
+      "output_tokens": 98,
+      "seconds": 2.41,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3583",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 536,
+      "output_tokens": 153,
+      "seconds": 2.65,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4101",
+      "severity": "minor",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 526,
+      "output_tokens": 5,
+      "seconds": 0.99,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3012",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 619,
+      "output_tokens": 226,
+      "seconds": 3.05,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1755",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "major",
+        "major"
+      ],
+      "input_tokens": 752,
+      "output_tokens": 147,
+      "seconds": 2.61,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1341",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 521,
+      "output_tokens": 103,
+      "seconds": 1.99,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2269",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "blocker",
+        "major"
+      ],
+      "input_tokens": 751,
+      "output_tokens": 227,
+      "seconds": 3.9,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3789",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "major",
+        "question"
+      ],
+      "input_tokens": 532,
+      "output_tokens": 172,
+      "seconds": 2.86,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3073",
+      "severity": "minor",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 498,
+      "output_tokens": 5,
+      "seconds": 0.93,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4805",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 487,
+      "output_tokens": 103,
+      "seconds": 2.47,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3604",
+      "severity": "minor",
+      "rules": [
+        "STY003",
+        "STY020"
+      ],
+      "llm": [
+        "blocker",
+        "major",
+        "major"
+      ],
+      "input_tokens": 1427,
+      "output_tokens": 457,
+      "seconds": 5.8,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2018",
+      "severity": "minor",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 522,
+      "output_tokens": 5,
+      "seconds": 0.97,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4207",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "blocker"
+      ],
+      "input_tokens": 579,
+      "output_tokens": 254,
+      "seconds": 3.72,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "694",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 498,
+      "output_tokens": 143,
+      "seconds": 2.3,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "704",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "question"
+      ],
+      "input_tokens": 689,
+      "output_tokens": 237,
+      "seconds": 3.53,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1830",
+      "severity": "minor",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 486,
+      "output_tokens": 5,
+      "seconds": 0.9,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1820",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 497,
+      "output_tokens": 126,
+      "seconds": 2.5,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2157",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "major",
+        "major"
+      ],
+      "input_tokens": 634,
+      "output_tokens": 250,
+      "seconds": 3.59,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "605",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "question"
+      ],
+      "input_tokens": 496,
+      "output_tokens": 89,
+      "seconds": 2.01,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3574",
+      "severity": "minor",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 506,
+      "output_tokens": 103,
+      "seconds": 2.11,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1919",
+      "severity": "nit",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 582,
+      "output_tokens": 220,
+      "seconds": 2.85,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "397",
+      "severity": "nit",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 659,
+      "output_tokens": 208,
+      "seconds": 3.23,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1166",
+      "severity": "nit",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 508,
+      "output_tokens": 5,
+      "seconds": 0.99,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1186",
+      "severity": "nit",
+      "rules": [
+        "STY006"
+      ],
+      "llm": [],
+      "input_tokens": 617,
+      "output_tokens": 111,
+      "seconds": 2.16,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2213",
+      "severity": "nit",
+      "rules": [
+        "STY006",
+        "STY006",
+        "STY006"
+      ],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 981,
+      "output_tokens": 217,
+      "seconds": 3.49,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4358",
+      "severity": "nit",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 784,
+      "output_tokens": 5,
+      "seconds": 0.88,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1355",
+      "severity": "nit",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor",
+        "minor"
+      ],
+      "input_tokens": 952,
+      "output_tokens": 225,
+      "seconds": 3.45,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3983",
+      "severity": "nit",
+      "rules": [],
+      "llm": [
+        "major",
+        "question"
+      ],
+      "input_tokens": 773,
+      "output_tokens": 255,
+      "seconds": 3.47,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4233",
+      "severity": "nit",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 531,
+      "output_tokens": 206,
+      "seconds": 3.95,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2224",
+      "severity": "nit",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "seconds": 0.0,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4974",
+      "severity": "nit",
+      "rules": [
+        "STY017"
+      ],
+      "llm": [],
+      "input_tokens": 744,
+      "output_tokens": 1,
+      "seconds": 1.89,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1854",
+      "severity": "nit",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 552,
+      "output_tokens": 114,
+      "seconds": 2.08,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4510",
+      "severity": "nit",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 832,
+      "output_tokens": 153,
+      "seconds": 2.98,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "5176",
+      "severity": "nit",
+      "rules": [],
+      "llm": [
+        "blocker"
+      ],
+      "input_tokens": 498,
+      "output_tokens": 128,
+      "seconds": 2.68,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2137",
+      "severity": "nit",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "seconds": 0.0,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "408",
+      "severity": "nit",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 672,
+      "output_tokens": 58,
+      "seconds": 1.53,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "666",
+      "severity": "nit",
+      "rules": [],
+      "llm": [
+        "minor",
+        "question"
+      ],
+      "input_tokens": 632,
+      "output_tokens": 179,
+      "seconds": 2.91,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2221",
+      "severity": "nit",
+      "rules": [
+        "STY006",
+        "STY006",
+        "STY006",
+        "STY006",
+        "STY006"
+      ],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 1090,
+      "output_tokens": 219,
+      "seconds": 3.6,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2249",
+      "severity": "nit",
+      "rules": [
+        "STY006",
+        "STY022"
+      ],
+      "llm": [],
+      "input_tokens": 1014,
+      "output_tokens": 15,
+      "seconds": 1.22,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2840",
+      "severity": "nit",
+      "rules": [
+        "STY006"
+      ],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 666,
+      "output_tokens": 194,
+      "seconds": 3.59,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2294",
+      "severity": "none",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 1010,
+      "output_tokens": 170,
+      "seconds": 3.24,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "49",
+      "severity": "none",
+      "rules": [
+        "STY018",
+        "STY018"
+      ],
+      "llm": [
+        "blocker",
+        "major"
+      ],
+      "input_tokens": 1372,
+      "output_tokens": 239,
+      "seconds": 3.88,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "5027",
+      "severity": "none",
+      "rules": [
+        "STY003",
+        "STY003",
+        "STY027"
+      ],
+      "llm": [
+        "question"
+      ],
+      "input_tokens": 1279,
+      "output_tokens": 88,
+      "seconds": 1.83,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3672",
+      "severity": "none",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 979,
+      "output_tokens": 5,
+      "seconds": 2.65,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1112",
+      "severity": "none",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 522,
+      "output_tokens": 1,
+      "seconds": 0.8,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1577",
+      "severity": "none",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 1045,
+      "output_tokens": 81,
+      "seconds": 2.83,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2054",
+      "severity": "none",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 804,
+      "output_tokens": 5,
+      "seconds": 1.8,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2397",
+      "severity": "none",
+      "rules": [
+        "STY003",
+        "STY003",
+        "STY003"
+      ],
+      "llm": [],
+      "input_tokens": 1171,
+      "output_tokens": 5,
+      "seconds": 1.52,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2697",
+      "severity": "none",
+      "rules": [],
+      "llm": [
+        "major",
+        "major"
+      ],
+      "input_tokens": 1033,
+      "output_tokens": 262,
+      "seconds": 4.79,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "831",
+      "severity": "none",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 1144,
+      "output_tokens": 181,
+      "seconds": 3.63,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2498",
+      "severity": "none",
+      "rules": [
+        "STY022"
+      ],
+      "llm": [],
+      "input_tokens": 1001,
+      "output_tokens": 3163,
+      "seconds": 37.91,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3497",
+      "severity": "none",
+      "rules": [],
+      "llm": [
+        "blocker",
+        "major"
+      ],
+      "input_tokens": 1141,
+      "output_tokens": 195,
+      "seconds": 3.73,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1562",
+      "severity": "none",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 663,
+      "output_tokens": 111,
+      "seconds": 2.4,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3535",
+      "severity": "none",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 577,
+      "output_tokens": 120,
+      "seconds": 2.6,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2340",
+      "severity": "none",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 1155,
+      "output_tokens": 413,
+      "seconds": 6.17,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "536",
+      "severity": "none",
+      "rules": [
+        "STY011"
+      ],
+      "llm": [
+        "blocker"
+      ],
+      "input_tokens": 1136,
+      "output_tokens": 200,
+      "seconds": 3.94,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3935",
+      "severity": "none",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 1052,
+      "output_tokens": 5,
+      "seconds": 1.2,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1551",
+      "severity": "none",
+      "rules": [],
+      "llm": [
+        "major",
+        "major"
+      ],
+      "input_tokens": 638,
+      "output_tokens": 224,
+      "seconds": 3.73,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2644",
+      "severity": "none",
+      "rules": [],
+      "llm": [
+        "question"
+      ],
+      "input_tokens": 1135,
+      "output_tokens": 315,
+      "seconds": 4.97,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4639",
+      "severity": "none",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 851,
+      "output_tokens": 92,
+      "seconds": 2.42,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4384",
+      "severity": "question",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 918,
+      "output_tokens": 379,
+      "seconds": 5.33,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3268",
+      "severity": "question",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 505,
+      "output_tokens": 146,
+      "seconds": 2.75,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2972",
+      "severity": "question",
+      "rules": [],
+      "llm": [
+        "major",
+        "question"
+      ],
+      "input_tokens": 676,
+      "output_tokens": 213,
+      "seconds": 3.3,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "1873",
+      "severity": "question",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 720,
+      "output_tokens": 5,
+      "seconds": 0.95,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4551",
+      "severity": "question",
+      "rules": [],
+      "llm": [
+        "major"
+      ],
+      "input_tokens": 657,
+      "output_tokens": 159,
+      "seconds": 3.94,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2810",
+      "severity": "question",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 571,
+      "output_tokens": 5,
+      "seconds": 2.48,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "185",
+      "severity": "question",
+      "rules": [
+        "STY020"
+      ],
+      "llm": [
+        "blocker",
+        "minor"
+      ],
+      "input_tokens": 1095,
+      "output_tokens": 535,
+      "seconds": 9.0,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "194",
+      "severity": "question",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 476,
+      "output_tokens": 5,
+      "seconds": 2.1,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "706",
+      "severity": "question",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 995,
+      "output_tokens": 194,
+      "seconds": 5.12,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3920",
+      "severity": "question",
+      "rules": [],
+      "llm": [
+        "question"
+      ],
+      "input_tokens": 472,
+      "output_tokens": 83,
+      "seconds": 2.6,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "218",
+      "severity": "question",
+      "rules": [],
+      "llm": [
+        "nit"
+      ],
+      "input_tokens": 604,
+      "output_tokens": 96,
+      "seconds": 2.46,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2751",
+      "severity": "question",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 832,
+      "output_tokens": 347,
+      "seconds": 6.49,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "26",
+      "severity": "question",
+      "rules": [
+        "STY001"
+      ],
+      "llm": [
+        "blocker"
+      ],
+      "input_tokens": 854,
+      "output_tokens": 154,
+      "seconds": 3.55,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3249",
+      "severity": "question",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 548,
+      "output_tokens": 5,
+      "seconds": 1.79,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "3285",
+      "severity": "question",
+      "rules": [],
+      "llm": [
+        "blocker",
+        "major"
+      ],
+      "input_tokens": 662,
+      "output_tokens": 182,
+      "seconds": 3.59,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2140",
+      "severity": "question",
+      "rules": [
+        "STY006",
+        "STY006",
+        "STY006",
+        "STY006",
+        "STY006"
+      ],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 1471,
+      "output_tokens": 188,
+      "seconds": 3.56,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "5191",
+      "severity": "question",
+      "rules": [],
+      "llm": [
+        "major",
+        "minor"
+      ],
+      "input_tokens": 589,
+      "output_tokens": 296,
+      "seconds": 4.12,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "2089",
+      "severity": "question",
+      "rules": [],
+      "llm": [],
+      "input_tokens": 520,
+      "output_tokens": 5,
+      "seconds": 0.89,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "812",
+      "severity": "question",
+      "rules": [],
+      "llm": [
+        "blocker",
+        "blocker"
+      ],
+      "input_tokens": 615,
+      "output_tokens": 217,
+      "seconds": 3.1,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    },
+    {
+      "review_id": "4527",
+      "severity": "question",
+      "rules": [],
+      "llm": [
+        "minor"
+      ],
+      "input_tokens": 502,
+      "output_tokens": 87,
+      "seconds": 2.01,
+      "llm_skipped": false,
+      "llm_errors": [],
+      "model": "qwen/qwen3.5-plus-20260420"
+    }
+  ]
+}

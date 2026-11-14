@@ -1,0 +1,2887 @@
+review_id,file_path,diff_context,comment_text,comment_type,severity
+1358,llama-index-integrations/llms/llama-index-llms-fireworks/llama_index/llms/fireworks/base.py,"@@ -54,13 +60,19 @@ def __init__(
+         completion_to_prompt: Optional[Callable[[str], str]] = None,
+         pydantic_program_mode: PydanticProgramMode = PydanticProgramMode.DEFAULT,
+         output_parser: Optional[BaseOutputParser] = None,
++        context_window: Optional[int] = None,
++        is_function_calling: Optional[bool] = None,
+     ) -> None:
+         additional_kwargs = additional_kwargs or {}
+         callback_manager = callback_manager or CallbackManager([])
+-
++
+         api_base = get_from_param_or_env(""api_base"", api_base, ""FIREWORKS_API_BASE"")
+         api_key = get_from_param_or_env(""api_key"", api_key, ""FIREWORKS_API_KEY"")
+-
++
++        # Store custom model metadata
++        self._custom_context_window = context_window
++        self._custom_is_function_calling = is_function_calling",Pretty sure this will break. This class is a pydantic model and pydantic doesn't like assigned undelcared fields before the super init. Did you test this?,bug,blocker
+3153,superduperdb/backends/ibis/query.py,"@@ -426,7 +426,9 @@ def outputs(self, key: str, model: str):
+         """"""
+         return IbisCompoundSelect(
+             table_or_collection=self,
+-            query_linker=self._get_query_linker(members=[]).outputs(key, model),
++            query_linker=self._get_query_linker(members=[]).outputs(","use named inputs, otherwise can go wrong later",bug,blocker
+448,sorts/cyclic_sort.py,"@@ -0,0 +1,52 @@
++""""""
++This is a pure Python implementation of the Cyclic Sort algorithm.
++
++For doctests run following command:
++python -m doctest -v cyclic_sort.py
++or
++python3 -m doctest -v cyclic_sort.py
++For manual testing run:
++python cyclic_sort.py
++""""""
++
++
++def cyclic_sort(nums: list) -> list:
++    """"""
++    Sorts the input list in-place using the Cyclic Sort algorithm.","I'd recommend adding the input constraints.
+
+This algorithm only works correctly when the elements range from `1` to `n` with no duplicates. Stating this constraint on the inputs to any potential users of the algorithm can help prevent confusion should they provide a list of integers that does not fit the criteria and end up in an infinite loop or some other unexpected behaviour.",bug,blocker
+3993,server/tests/test_loading_configuration.py,"@@ -0,0 +1,175 @@
++import copy
++import json
++from pathlib import Path
++from pydoc import importfile
++import tempfile
++from typing import Callable
++
++from pytest import fixture
++
++from emcie.server.configuration_validator import ConfigurationFileValidator
++from emcie.server.core.common import JSONSerializable
++
++
++@fixture(scope=""function"")
++def new_file() -> Callable[[], Path]:
++    def create_temp_file() -> Path:
++        with tempfile.NamedTemporaryFile() as file:
++            return Path(file.name)","There's a bug here. You return out of the `with` statement, which ends up calling the `__exit__()` function of `NamedTemporaryFile`. What you want here is to yield the value, and you don't need to return a callable, but instead implement the whole thing with a generator.
+
+See how I implemented this in `persistence.py`",bug,blocker
+4218,authentik/enterprise/license.py,"@@ -110,6 +111,7 @@ def validate(jwt: str, check_expiry=True) -> LicenseKey:
+         except InvalidSignature, TypeError, ValueError, Error:
+             raise ValidationError(""Unable to verify license"") from None
+         try:
++            ECAlgorithm._validate_curve = lambda *_: True","```suggestion
+            # See https://github.com/goauthentik/authentik/pull/20402
+            ECAlgorithm._validate_curve = lambda *_: True
+```",security,blocker
+3579,superagi/controllers/agent.py,"@@ -473,3 +477,45 @@ def get_agent_configuration(agent_id: int,
+     db.session.close()
+
+     return response
++
++@router.put(""/delete/{agent_id}"")
++def delete_agent(agent_id: int, Authorize: AuthJWT = Depends(check_auth)):
++    """"""
++        Delete an existing Agent
++            - Updates the is_deleted flag: Executes a soft delete
++            - AgentExecutions are updated to: ""TERMINATED"" if agentexecution is created, All the agent executions are updated
++            - AgentExecutionPermission is set to: ""REJECTED"" if agentexecutionpersmision is created
++
++        Args:
++            agent_id (int): Identifier of the Agent to delete
++
++        Returns:
++            A dictionary containing a ""success"" key with the value True to indicate a successful delete.
++
++        Raises:
++            HTTPException (Status Code=404): If the Agent or associated Project is not found or deleted already.
++    """"""
++
++    db_agent = db.session.query(Agent).filter(Agent.id == agent_id).first()
++    db_agent_executions = db.session.query(AgentExecution).filter(AgentExecution.agent_id == agent_id).all()
++    db_agent_execution_permission = db.session.query(AgentExecutionPermission).filter(AgentExecutionPermission.agent_id == agent_id).first()
++
++
++    if not db_agent or db_agent.is_deleted:
++        raise HTTPException(status_code=404, detail=""agent not found"")
++
++    # Deletion Procedure
++    db_agent.is_deleted = True
++    if db_agent_executions:
++        # Updating all the RUNNING executions to TERMINATED
++        for db_agent_execution in db_agent_executions:
++            db_agent_execution.status = ""TERMINATED""
++
++    if db_agent_execution_permission:
++        db_agent_execution_permission.status = ""REJECTED""
++
++    db.session.commit()
++
++    return {""success"": True}
++",Can we just handle by HTTP status code we are trying to avoid success/failure messages,bug,blocker
+3913,letta/constants.py,"@@ -48,6 +48,9 @@
+ DEFAULT_MESSAGE_TOOL = ""send_message""
+ DEFAULT_MESSAGE_TOOL_KWARG = ""message""
+
++# Structured output models
++STRUCTURED_OUTPUT_MODELS = {""gpt-4o-mini-2024-07-18"", ""gpt-4o-2024-08-06""}",would this fail to match if the model name is just `gpt-4o-mini`?,bug,blocker
+597,backend/aci/server/routes/functions.py,"@@ -443,6 +444,13 @@ async def execute_function(
+         extra={""function_name"": function_name, ""function_executor"": type(function_executor)},
+     )
+
++    # Update the last used at timestamp","should probably put this after the function execution (if what we want the ""last used"" to indicate ""last time a function is executed with this account credential"")",security,blocker
+469,maths/trapezoidal_rule.py,"@@ -1,47 +1,103 @@
+ """"""
+ Numerical integration or quadrature for a smooth function f with known values at x_i
+
+-This method is the classical approach of suming 'Equally Spaced Abscissas'
++This method is the classical approach of summing 'Equally Spaced Abscissas'","```suggestion
+The trapezoidal rule is the classical approach of summing 'Equally Spaced Abscissas'
+```
+Let's rephrase the header docstring to name the rule directly. I'm not sure why the original author called it ""method 1"".",security,blocker
+4512,httpie/output/formatters/json.py,"@@ -1,14 +1,70 @@
+ import json
++from typing import Generator
+
+ from ...plugins import FormatterPlugin
+
++XXSI_PREFIXES = ("")]}',\n"", "")]}',"", 'while(1);', 'for(;;)')","I added the constant to ease future prefix add.
+
+For example, I [read](http://patorjk.com/blog/2013/02/05/crafty-tricks-for-avoiding-xssi/) that some service was using `123\n` as prefix. Such prefix would break the formatting as no heuristics could handle it: it is only valid JSON values. For instance, that response's body would be problematic without the possibility to add `123\n` prefix later:
+```json
+123\n""some string""
+```
+
+For more context, have a look at the doctring of `JSONFormatter._find_potential_json_bodies()`.",security,blocker
+4297,tunix/rl/rl_cluster.py,"@@ -1031,6 +1040,7 @@ def get_rewards(
+           eos_id,
+       )
+
++  # TODO(lancewang): Combine mesh and logical axis rules into a single context manager.",Can you create a bug tracker instead of assigning it to me?,bug,blocker
+410,tests/test_cells.py,"@@ -172,12 +187,35 @@ def test_is_single_cell_widths() -> None:
+         (""♻"", [(0, 1, 1)], 1),
+         (""♻️"", [(0, 2, 2)], 2),
+         (""♻♻️"", [(0, 1, 1), (1, 3, 2)], 3),
++        (""\x1b"", [(0, 1, 0)], 0),  # One escape sahould have zero width
++        (""\x1b\x1b"", [(0, 2, 0)], 0),  # Two escapes should have zero width
++        (
++            ""\ufe0f"",","Add a regression case where VS16 follows a zero-width character that doesn't set `last_measured_character` (e.g. ""\x1b\ufe0f"" or ""\u200d\ufe0f""). This currently can trigger the same non-advancing-index infinite loop in `split_graphemes`, and a test here would prevent it from returning.",bug,blocker
+1078,qa/rpc-tests/pruning.py,"@@ -10,19 +10,78 @@
+ # This test uses 4GB of disk space.
+ # This test takes 30 mins or more (up to 2 hours)
+ # ********
+-
++from test_framework.blocktools import create_coinbase
++from test_framework.mininode import CBlock
++from test_framework.script import (
++    CScript,
++    OP_NOP,
++    OP_RETURN,
++)
+ from test_framework.test_framework import BitcoinTestFramework
+-from test_framework.util import *
++from test_framework.util import (
++    start_node,
++    connect_nodes,
++    sync_blocks,
++    assert_equal,
++    assert_greater_than,
++    assert_raises_jsonrpc,
++)
+ import time
+ import os
+
+-MIN_BLOCKS_TO_KEEP = 288
+-
+ # Rescans start at the earliest block up to 2 hours before a key timestamp, so
+ # the manual prune RPC avoids pruning blocks in the same window to be
+ # compatible with pruning based on key creation time.
+ RESCAN_WINDOW = 2 * 60 * 60
+
++def mine_large_blocks(node, n, dir=""""):
++    # Make a large scriptPubKey for the coinbase transaction. This is OP_RETURN
++    # followed by 950k of OP_NOP. This would be non-standard in a non-coinbase
++    # transaction but is consensus valid.
++
++    # Set the nTime if this is the first time this function has been called.
++    # A static variable ensures that time is monotonicly increasing and is therefore
++    # different for each block created => blockhash is unique.
++    if ""nTimes"" not in mine_large_blocks.__dict__:
++        mine_large_blocks.nTime = 0
++
++    # Get the block parameters for the first block
++    big_script = CScript([OP_RETURN] + [OP_NOP] * 950000)
++    best_block = node.getblock(node.getbestblockhash())
++    height = int(best_block[""height""]) + 1
++    mine_large_blocks.nTime = max(mine_large_blocks.nTime, int(best_block[""time""])) + 1
++    previousblockhash = int(best_block[""hash""], 16)
++
++    for _ in range(n):
++        # Build the coinbase transaction (with large scriptPubKey)
++        coinbase_tx = create_coinbase(height)
++        coinbase_tx.vin[0].nSequence = 2 ** 32 - 1
++        coinbase_tx.vout[0].scriptPubKey = big_script
++        coinbase_tx.rehash()
++
++        # Build the block
++        block = CBlock()
++        block.nVersion = 0x620004
++        block.hashPrevBlock = previousblockhash
++        block.nTime = mine_large_blocks.nTime
++        block.nBits = int('207fffff', 16)
++        block.nNonce = 0
++        block.vtx = [coinbase_tx]
++        block.hashMerkleRoot = block.calc_merkle_root()
++        block.calc_sha256()
++        block.solve()
++
++        # Submit to the node
++        node.submitblock(block.serialize().hex())
++
++        previousblockhash = block.sha256
++        height += 1
++        mine_large_blocks.nTime += 1
++
++        if len(dir) > 0:
++            if calc_usage(dir) > 2190 and calc_usage(dir) <= 2300:
++                print(""current usage:"", calc_usage(dir))
++                print(height)",I think this is test debugging code that can be removed?,bug,blocker
+1088,qa/rpc-tests/getmocktime.py,"@@ -0,0 +1,53 @@
++#!/usr/bin/env python3
++# Copyright (c) 2023 The Dogecoin Core developers
++# Distributed under the MIT software license, see the accompanying
++# file COPYING or http://www.opensource.org/licenses/mit-license.php.
++#
++
++from test_framework.mininode import * #NodeConnCB, NODE_NETWORK, NodeConn, wait_until
++from test_framework.test_framework import BitcoinTestFramework
++from test_framework.util import *
++import time
++
++'''
++GetMockTime -- test getmocktime
++'''
++
++class GetMockTimeTestNode(SingleNodeConnCB):
++    def __init__(self):
++        SingleNodeConnCB.__init__(self)
++
++class GetMockTime(BitcoinTestFramework):
++    def __init__(self):
++        super().__init__()
++        self.setup_clean_chain = True
++        self.num_nodes = 1
++        self.counter = 0
++        self.mocktime = int(time.time())
++        self.is_network_split = False
++
++    def run_test(self):
++        self.test_getmocktime()
++
++    def setup_network(self):
++        # set up full nodes
++        self.nodes = []
++        # Node 0 is going to be our testsubject
++        self.nodes.append(start_node(0, self.options.tmpdir, [""-debug=net"", ""-debug=mempool"", ""-peertimeout=999999999""]))
++        self.create_testnode()
++
++    def create_testnode(self, node_idx=0):
++        node = GetMockTimeTestNode()
++        conn = NodeConn('127.0.0.1', p2p_port(node_idx), self.nodes[node_idx], node)
++        node.add_connection(conn)
++        return node
++
++    def mocktime_is_set(self):
++        return self.nodes[0].getmocktime() == 123 # lambda checks if the specific mocktime has been set
++
++    def test_getmocktime(self):
++        self.nodes[0].setmocktime(123) # set the mocktime
++        assert wait_until(self.mocktime_is_set, timeout=60) # execute the lambda repeatedly for at most 60 seconds","I'd design this differently. for example:
+
+```python
+    def wait_until_mocktime(self, node, time, timeout):
+        def mocktime_is_set:
+            return node.getmocktime() == time
+        return wait_until(mocktime_is_set, timeout=timeout)
+```
+
+And then you can easily test for different cases, eg: negatives, 0, negative 0, int64 overflow in both directions, and a couple of actual timestamps.",bug,blocker
+3163,superduperdb/backends/mongodb/metadata.py,"@@ -31,6 +31,9 @@ def __init__(
+         self.job_collection = self.db['_jobs']
+         self.parent_child_mappings = self.db['_parent_child_mappings']
+
++    def url(self):","I'm not sure this would work, since it would expose the credentials.",security,blocker
+918,app/routes.py,"@@ -250,7 +251,8 @@ def search():
+
+     # Return 503 if temporarily blocked by captcha
+     resp_code = 503 if has_captcha(str(response)) else 200
+-
++","Trailing whitespace here. Should be the last issue that's failing the pep8 check, then I'll merge
+```suggestion
+
+```",bug,blocker
+3478,src/textual/getters.py,"@@ -176,13 +176,11 @@ def __get__(
+         """"""Get the widget matching the selector and/or type.""""""
+         if obj is None:
+             return self
+-        child = obj._nodes._get_by_id(self.child_id)
++        child = obj._get_dom_base()._nodes._get_by_id(self.child_id)
+         if child is None:
+-            raise NoMatches(f""No child found with id={id!r}"")
++            raise NoMatches(f""No child found with id={self.child_id!r}"")
+         if not isinstance(child, self.expect_type):
+-            if not isinstance(child, self.expect_type):
+-                raise WrongType(
+-                    f""Child with id={id!r} is wrong type; expected {self.expect_type}, got""
+-                    f"" {type(child)}""
+-                )
++            raise WrongType(
++                f""Child with id={id!r} is the wrong type; expected type {self.expect_type.__name__!r}, found {child}""","```suggestion
+                f""Child with id={self.child_id!r} is the wrong type; expected type {self.expect_type.__name__!r}, found {child}""
+```",bug,blocker
+352,rich/text.py,"@@ -141,15 +140,16 @@ def __init__(
+         tab_size: Optional[int] = 8,
+         spans: Optional[List[Span]] = None,
+     ) -> None:
+-        self._text = [strip_control_codes(text)]
++        sanitized_text = make_control_codes_readable(text)
++        self._text = [sanitized_text]
+         self.style = style
+         self.justify: Optional[""JustifyMethod""] = justify
+         self.overflow: Optional[""OverflowMethod""] = overflow
+         self.no_wrap = no_wrap
+         self.end = end
+         self.tab_size = tab_size
+         self._spans: List[Span] = spans or []
+-        self._length: int = len(text)
++        self._length: int = len(sanitized_text)","that's the bugfix itself! :slightly_smiling_face: i.e. we should use the length of the sanitised text, rather than the one of the text we received as an argument",bug,blocker
+4044,src/parlant/bin/client.py,"@@ -209,6 +209,34 @@ def set_exit_status(status: int) -> None:
+
+
+ class Actions:
++    @staticmethod
++    def raise_for_status_with_detail(response: requests.Response) -> Optional[requests.HTTPError]:
++        """"""Raises :class:`HTTPError`, if one occurred, with detail if exists""""""
++
++        http_error_msg = """"
++        if isinstance(response.reason, bytes):
++            try:
++                reason = response.reason.decode(""utf-8"")
++            except UnicodeDecodeError:",In what cases did UTF-8 decoding fail?,bug,blocker
+2074,integration_tests/webserver/test_rest_connector.py,"@@ -45,8 +45,9 @@ def target() -> None:
+         r.raise_for_status()
+         assert r.text == '""TWO""', r.text
+
++    webserver = pw.io.http.PathwayWebserver(host=""127.0.0.1"", port=port)","The `pw.io.http.PathwayWebserver` object only allows an integer as a port. At the same time, `test_server_str_port_compatibility` tests that the strings are also allowed (a legacy of the old code base).
+
+I think we need to restrict ports only to integers, but then the test `test_server_str_port_compatibility` must be removed, otherwise the test suite fails.",bug,blocker
+736,olmo/data/iterable_dataset.py,"@@ -145,8 +158,31 @@ def __iter__(self) -> Iterator[Dict[str, Any]]:
+                 indices = np.concatenate([indices, left_overs])
+             else:
+                 indices = indices[worker_info.id :: worker_info.num_workers]
++        elif num_threads is None:
++            # If `num_threads` hasn't been specified and we're not using multiprocessing we'll try to guess
++            # a good number of threads.
++            num_threads = 4
++
++        # Finally, potentially slice by threads.
++        if num_threads:
++            # In order to stay ahead of training the total queue size (sum across all threads)
++            # should be bigger than the batch size.
++            queue_size: int
++            if self.device_batch_size is not None:",Why would `device_batch_size` ever be `None`?,performance,major
+2212,official/nlp/modeling/layers/on_device_embedding_test.py,"@@ -193,6 +193,83 @@ def test_one_hot_layer_invocation_with_mixed_precision(self):
+     output = model.predict(input_data)
+     self.assertEqual(tf.float16, output.dtype)
+
++  def test_use_scale_layer_creation(self):
++    vocab_size = 31
++    embedding_width = 27
++    test_layer = on_device_embedding.OnDeviceEmbedding(
++        vocab_size=vocab_size, embedding_width=embedding_width, use_scale=True)
++    # Create a 2-dimensional input (the first dimension is implicit).
++    sequence_length = 23
++    input_tensor = tf.keras.Input(shape=(sequence_length), dtype=tf.int32)
++    output_tensor = test_layer(input_tensor)
++
++    # The output should be the same as the input, save that it has an extra
++    # embedding_width dimension on the end.
++    expected_output_shape = [None, sequence_length, embedding_width]
++    self.assertEqual(expected_output_shape, output_tensor.shape.as_list())
++    self.assertEqual(output_tensor.dtype, tf.float32)
++
++  def test_use_scale_layer_creation_with_mixed_precision(self):
++    vocab_size = 31",I think we can remove this test case to reduce complexity,performance,major
+4499,httpie/models.py,"@@ -82,13 +91,26 @@ def headers(self):
+
+     @property
+     def encoding(self):
+-        return self._orig.encoding or 'utf8'
++        """"""Properly detect the :class:`requests.models.Response` encoding.
++
++        The original encoding cannot be trust for several reasons, see
++        https://github.com/httpie/httpie/issues/1022 and related issues.
++
++        """"""
++        # Since `requests` 2.26.0, `charset_normalizer` is already used to handle
++        # encoding fallback, so lazily importing the module here is not a performance
++        # concern.
++        from charset_normalizer import detect
++
++        return detect(self.body)['encoding'] or 'utf8'","`.encoding` is accessed inside loops, this would be expensive",performance,major
+3412,src/textual/widgets/_markdown.py,"@@ -146,10 +147,14 @@ def build_from_token(self, token: Token) -> None:
+         self._token = token
+         style_stack: list[Style] = [Style()]
+         content = Text()
++        repeating_whitespace = re.compile(r""[ \t]+"")  # Space or tabs get reduced.",Would it be worth it (performance-wise) to compile this in the module scope and then use it here?,performance,major
+2177,research/object_detection/meta_architectures/faster_rcnn_meta_arch.py,"@@ -762,10 +758,10 @@ def predict(self, preprocessed_inputs, true_image_shapes, **side_inputs):
+
+     Returns:
+       prediction_dict: a dictionary holding ""raw"" prediction tensors:
+-        1) rpn_box_predictor_features: A 4-D float32 tensor with shape
++        1) rpn_box_predictor_features: A list of 4-D float32 tensor with shape
+           [batch_size, height, width, depth] to be used for predicting proposal","nit: [batch_size, height_i, width_j, depth]",performance,major
+740,olmo/data/iterable_dataset.py,"@@ -127,26 +134,46 @@ def __iter__(self) -> Iterator[Dict[str, Any]]:
+         # Slice indices by rank to avoid duplicates.
+         indices = indices[self.rank : self.total_size : self.world_size]
+
+-        # Lastly, slice the indices by data loader worker rank to avoid duplicates.
++        # Separate from data loading workers (which use multiprocessing), we also have the option
++        # to use multi-threading (within workers).
++        num_threads = self.num_threads
++
++        # Slice the indices by data loader worker rank to avoid duplicates.
+         worker_info = torch.utils.data.get_worker_info()
+         if worker_info is not None:
+             # Note that each data loading worker gathers a whole batch at a time, and the workers
+             # are called round-robin by rank. So to slice these up in a way that preserves order, regardless
+             # of the number of workers, we should give worker 0 the first chunk of `device_batch_size` indices,
+             # worker 1 the 2nd chunk of `device_train_batch_size` indices, etc...
+-            if self.device_batch_size is not None:
+-                truncated_size = self.device_batch_size * (len(indices) // self.device_batch_size)
+-                left_overs = indices[truncated_size + worker_info.id :: worker_info.num_workers]
+-                indices = (
+-                    indices[:truncated_size]
+-                    .reshape((-1, self.device_batch_size))[worker_info.id :: worker_info.num_workers]  # type: ignore
+-                    .reshape((-1,))
++            truncated_size = self.device_batch_size * (len(indices) // self.device_batch_size)
++            left_overs = indices[truncated_size + worker_info.id :: worker_info.num_workers]
++            indices = (
++                indices[:truncated_size]
++                .reshape((-1, self.device_batch_size))[worker_info.id :: worker_info.num_workers]  # type: ignore
++                .reshape((-1,))
++            )
++            indices = np.concatenate([indices, left_overs])
++        elif num_threads is None:
++            # If `num_threads` hasn't been specified and we're not using multiprocessing we'll try to guess
++            # a good number of threads.
++            num_threads = 4
++
++        # Finally, potentially slice by threads.
++        if num_threads:
++            # In order to stay ahead of training the total queue size (sum across all threads)
++            # should be bigger than the batch size.
++            queue_size = math.ceil(self.device_batch_size * 2 / num_threads)","thought: This locks us to being exactly 2 batches ahead. A config for changing the 2 or the queue_size more broadly could be helpful if we find that we are either:
+
+1. bottle-necked by data retrieval still (say, if data retrieval is not consistent in speed), and so would like to prepare extra batches; or,
+2. bottle-necked by CPU memory somehow and want to bring down the number of instances we have stored in advance.",performance,major
+3258,superduper/vector_search/in_memory.py,"@@ -109,17 +110,17 @@ def find_nearest_from_array(self, h, n=100, within_ids=None):
+         _ids = [self.index[i] for i in ix]
+         return _ids, scores
+
+-    def add(self, items: t.Sequence[VectorItem]) -> None:
++    def add(self, items: t.Sequence[VectorItem] = ()) -> None:
+         """"""Add vectors to the index.
+
+         Only adds to cache if cache is not full.
+
+         :param items: List of vectors to add
++        :param force: Flush the cache and add all vectors
+         """"""
+-        if len(self._cache) < self._CACHE_SIZE:
+-            for item in items:
+-                self._cache.append(item)
+-        else:
++        for item in items:",The original logic here would skip `len(items)` of the `items` every time the `_CACHE_SIZE` is reached.,performance,major
+511,scrapegraphai/nodes/rag_node.py,"@@ -98,7 +99,19 @@ def execute(self, state: dict) -> dict:
+         )
+         embeddings = self.embedder_model
+
+-        retriever = FAISS.from_documents(chunked_docs, embeddings).as_retriever()
++        folder_name = ""cache""","that's the only thing I'd change.
+
+as it stands, each RAG node with the cache config would overwrite the very same folder, effectively nullifying the cache, unless a RAG node on the very same input state is invoked subsequently.
+
+I would allow for more flexibility by either 1): allowing the user to specify the cache folder in the config for that specific RAG node or 2) automatically compute a unique identifier for that specific input state (e.g., the filename, the endpoint or a some hashing function on the documents) so that the user may choose what to keep and what not to keep in the cache",performance,major
+1695,rdagent/oai/utils/embedding.py,"@@ -0,0 +1,215 @@
++""""""
++Embedding utilities for handling token limits and text truncation with retry strategies.
++""""""
++
++from typing import Optional
++
++from litellm import get_max_tokens, token_counter
++
++from rdagent.log import rdagent_logger as logger
++from rdagent.oai.llm_conf import LLM_SETTINGS
++
++# Common embedding model token limits
++EMBEDDING_MODEL_LIMITS = {
++    ""text-embedding-ada-002"": 8191,
++    ""text-embedding-3-small"": 8191,
++    ""text-embedding-3-large"": 8191,
++    # Add more models as needed...
++}
++
++
++def get_embedding_max_tokens(model: str) -> int:
++    """"""
++    Get maximum token limit for embedding model.
++
++    Three-level fallback strategy:
++    1. Use litellm.get_max_tokens()
++    2. Query EMBEDDING_MODEL_LIMITS mapping
++    3. Use default value 8192
++
++    Args:
++        model: Model name
++
++    Returns:
++        Maximum token limit
++    """"""
++    # Level 1: Try litellm
++    try:
++        max_tokens = get_max_tokens(model)
++        if max_tokens and max_tokens > 0:
++            return max_tokens
++    except Exception as e:
++        logger.warning(f""Failed to get max tokens for {model}: {e}"")
++
++    # Level 2: Query mapping table
++    # Remove prefix (e.g., ""provider/model"" -> ""model"")
++    model_name = model.split(""/"")[-1] if ""/"" in model else model
++    if model_name in EMBEDDING_MODEL_LIMITS:
++        return EMBEDDING_MODEL_LIMITS[model_name]
++
++    # Level 3: fallback to LLM_SETTINGS.embedding_max_length
++    default_max_tokens = LLM_SETTINGS.embedding_max_length
++    logger.warning(f""Unknown embedding model {model}, using default max_tokens={default_max_tokens}"")
++    return default_max_tokens
++
++
++def estimate_token_count(text: str, model: str = ""text-embedding-3-small"") -> int:
++    """"""
++    Calculate token count using litellm's token_counter.
++
++    Args:
++        text: Input text
++        model: Model name
++
++    Returns:
++        Actual token count
++    """"""
++    try:
++        return token_counter(model=model, text=text)
++    except Exception as e:
++        logger.warning(f""Failed to count tokens for {model}: {e}. Using fallback estimation."")
++        # Simple fallback: ~0.5 tokens per character
++        return len(text) // 2
++
++
++def trim_text_for_embedding(
++    text: str, model: str, max_tokens: Optional[int] = None, retry_count: int = 0, apply_safety_margin: bool = True
++) -> str:
++    """"""
++    Truncate text for embedding model using binary search with retry support.
++
++    Args:
++        text: Input text
++        model: Model name
++        max_tokens: Maximum token limit, auto-detected if None
++        retry_count: Current retry attempt (0 = first attempt)
++        apply_safety_margin: Whether to apply safety margin (can be disabled for forced limits)
++
++    Returns:
++        Truncated text
++    """"""
++    if not text:
++        return text
++
++    # Get model's maximum token limit",Complexity does not bring enough benefit.,performance,major
+783,scripts/inspect_train_data.py,"@@ -2,28 +2,121 @@
+ Use this script to inspect the data in given batches from a training run.
+ """"""
+
++import argparse
+ import gzip
+-import sys
++import os
++import tempfile
+ from pathlib import Path
+-from typing import Optional
++from typing import List, Optional
+
++from cached_path import cached_path
++
++from olmo.checkpoint import load_state_dict
+ from olmo.config import TrainConfig
+-from olmo.data import build_memmap_dataset
+-from olmo.exceptions import OLMoCliError
++from olmo.data import build_memmap_dataset, build_train_dataloader
++from olmo.data.iterable_dataset import IterableDataset
+ from olmo.tokenizer import Tokenizer
+-from olmo.util import clean_opt, prepare_cli_environment
++from olmo.util import add_cached_path_clients, clean_opt, prepare_cli_environment
++
++
++def get_global_train_examples_seen_before_step(step: int, trainer_state: dict, cfg: TrainConfig):
++    global_step = trainer_state[""global_step""]
++
++    if global_step >= step:
++        raise ValueError(f""Step {step} must be after training first step {global_step}"")
++
++    global_train_examples_seen_this_epoch = trainer_state.get(
++        ""global_train_examples_seen_this_epoch"",
++        trainer_state.get(  # for backwards compatibility
++            ""global_train_examples_seen"",
++            trainer_state.get(""global_data_step"", global_step) * cfg.global_train_batch_size,
++        ),
++    )
++
++    # Subtract 1 from step because we want to be just before that step
++    global_train_examples_seen_this_epoch += (step - 1 - global_step) * cfg.global_train_batch_size
++    return global_train_examples_seen_this_epoch
+
+
+-def main(save_folder: Path, *steps: int, rank: Optional[int] = None):
++def inspect_data_without_device_data_indices(
++    run_path: str, *steps: int, world_size: int, ranks: List[int], reference_step: int
++):
++    cfg = TrainConfig.load(
++        cached_path(os.path.join(run_path, f""step{reference_step}/config.yaml"")),
++        overrides=[clean_opt(""--evaluators=[]""), clean_opt(""--save_overwrite"")],
++    )
++    cfg.data.num_workers = 1
++
++    if cfg.global_train_batch_size % world_size != 0:
++        raise ValueError(f""World size must divide global_train_batch_size {cfg.global_train_batch_size}"")
++    cfg.device_train_batch_size = cfg.global_train_batch_size // world_size
++
++    try:
++        trainer_state = load_state_dict(run_path, f""step{reference_step}/train/rank0.pt"", map_location=""cpu"")
++    except FileNotFoundError:
++        try:
++            # Unsharded checkpointing
++            trainer_state = load_state_dict(run_path, f""step{reference_step}/train.pt"", map_location=""cpu"")
++        except FileNotFoundError:
++            # Legacy checkpointing
++            trainer_state = load_state_dict(run_path, f""step{reference_step}/rank0.pt"", map_location=""cpu"")
++
++    tokenizer = Tokenizer.from_train_config(cfg)
++
++    with tempfile.TemporaryDirectory() as tmpdir:
++        cfg.save_folder = tmpdir
++
++        # Build dataloader in rank 0 to generate the indices file
++        os.environ[""RANK""] = ""0""
++        dataloader = build_train_dataloader(cfg, world_size=world_size)
++
++        for rank in ranks:
++            os.environ[""RANK""] = str(rank)
++            # Set FS_LOCAL_RANK to a non-zero number so that global data indices are not rewritten
++            os.environ[""FS_LOCAL_RANK""] = ""1""
++
++            for step in steps:
++                dataloader = build_train_dataloader(cfg, world_size=world_size)","This would have to rebuild the indices file every time, right? That could be slow, but we could probably avoid rebuilding for every rank.",performance,major
+4821,requests/sessions.py,"@@ -633,7 +620,10 @@ def send(self, request, **kwargs):
+         kwargs.setdefault('stream', self.stream)
+         kwargs.setdefault('verify', self.verify)
+         kwargs.setdefault('cert', self.cert)
+-        kwargs.setdefault('proxies', self.rebuild_proxies(request, self.proxies))
++        if 'proxies' not in kwargs:",This change should actually fix the performance regression in most cases (`Session.request` - which I assume is the most common flow - always sets `proxies` on `kwargs`).,performance,major
+735,olmo/data/iterable_dataset.py,"@@ -146,7 +152,7 @@ def __iter__(self) -> Iterator[Dict[str, Any]]:
+             else:
+                 indices = indices[worker_info.id :: worker_info.num_workers]
+
+-        return (self._get_dataset_item(int(idx)) for idx in indices)
++        return threaded_generator((self._get_dataset_item(int(idx)) for idx in indices), maxsize=8)",Is this going to use 8 batches worth of GPU memory?,performance,major
+791,olmo/eval/downstream.py,"@@ -9,11 +9,62 @@
+ from sklearn.metrics import f1_score
+ from torchmetrics import Metric
+
++from olmo.torch_util import barrier, get_fs_local_rank
++from olmo.util import load_dataset_from_disk, save_dataset_to_disk
++
+ from ..tokenizer import Tokenizer
+
+ log = logging.getLogger(__name__)
+
+
++def load_dataset(path, name, split, datasets_cache_dir: Optional[str] = None):","nit: missing type hints
+```suggestion
+def load_dataset(path, name, split, datasets_cache_dir: Optional[str] = None):
+```",performance,major
+733,olmo/checkpoint.py,"@@ -614,14 +616,19 @@ def restore_checkpoint(
+                 load_state_dict(load_path, ""model.pt"", local_cache=local_cache, map_location=""cpu"")
+             )
+             fsdp_model.load_state_dict(state_dict_to_load)
++            del state_dict_to_load
+
+             # Load optimizer state.
++            gc.collect()
+             if load_optimizer_state:
+                 log.info(""Loading optimizer state..."")
+-                optim_state_dict_to_load = self._make_optim_state_dict_compatible(
+-                    load_state_dict(load_path, ""optim.pt"", local_cache=local_cache, map_location=""cpu""),
+-                    og_keys_to_new,
+-                )
++                if get_global_rank() == 0:","I think an alternative to this is to set the checkpoint type to not be rank0 only (in the context manager above), and then load optimizer state one local process at a time.",performance,major
+3197,superduperdb/components/model.py,"@@ -524,10 +608,25 @@ def __post_init__(self, artifacts):
+         if self.model_to_device_method is not None:
+             self._artifact_method = getattr(self, self.model_to_device_method)
+
++    def __repr__(self):
++        s = f'Identifier: {self.identifier}\nParams: {self.inputs.params}\nPreferred Devices: {self.preferred_devices}'
++        return border_msg(s, title='SuperDuper Model')
++
+     def to_call(self, X, *args, **kwargs):
++        if isinstance(X, (tuple, list)):","How about X is exactly a list as one parameter?
+For example:
+1. Batch inference `model.predict([""1"", ""2""])`
+2. Text similarity `model.predict((""This is a apple"", ""There are two apple""))`",performance,major
+3210,superduperdb/ext/llm/base.py,"@@ -94,6 +93,10 @@ def get_kwargs(self, func, *kwargs_list):
+                 new_kwargs[k] = v
+         return new_kwargs
+
++    @property
++    def prompter(self):","does it make sense to cache it?
+WDYT? @user",performance,major
+1327,llama-index-core/llama_index/core/base/embeddings/base.py,"@@ -468,64 +478,71 @@ async def aget_text_embedding_batch(
+                     payload={EventPayload.SERIALIZED: self.to_dict()},
+                 )
+                 callback_payloads.append((event_id, cur_batch))
++
+                 if not self.embeddings_cache:
+                     embeddings_coroutines.append(self._aget_text_embeddings(cur_batch))
+                 elif self.embeddings_cache is not None:
+-                    for txt in cur_batch:
++                    embeddings = [None for i in range(len(cur_batch))]","This raises a type checking error if you do not specify the types in the list
+```suggestion
+                    embeddings: List[Optional[List[float]]] = [None for i in range(len(cur_batch))]
+```",performance,major
+4396,pandasai/connectors/airtable.py,"@@ -11,13 +11,18 @@
+ import time
+ import hashlib
+ from ..exceptions import InvalidRequestError
++from functools import cache, cached_property
+
+
+ class AirtableConnector(BaseConnector):
+     """"""
+     Airtable connector to retrieving record data.
+     """"""
+
++    _rows_count: int = None
++    _columns_count: int = None
++    instance = None",This is extra because we already cache the dataframe,performance,major
+377,rich/syntax.py,"@@ -690,6 +743,81 @@ def _get_syntax(
+                     yield from wrapped_line
+                     yield new_line
+
++    def _apply_stylized_ranges(self, *, code: str, text: Text) -> None:
++        """"""
++        Apply stylized ranges to a text instance,
++        using the given code to determine the right portion to apply the style to.
++
++        Args:
++            code (str): Code to highlight.
++            text (Text): Text instance to apply the style to.
++        """"""
++        # N.B. using ""\n"" here is much faster than using metacharacters such as ""^"" or ""\Z"":
++        newlines_offsets = [
++            match.start() for match in re.finditer(""\n"", code, flags=re.MULTILINE)
++        ]
++        # Let's add outer boundaries at each side of the list:
++        newlines_offsets.insert(0, -1)","Inserts at 0 are inefficient. Could you create the list in a single expression?
+
+```python
+newlines_offsets = [0, *(match.start ...), len(code)]
+```",performance,major
+4280,tunix/generate/utils.py,"@@ -701,6 +701,97 @@ def transfer_state_with_mappings(
+   return dst_state.from_flat_path(tgt_flat_list)
+
+
++def transfer_state_directly(
++    src_state: Any,
++    dst_state: Any,
++    reshard_fn: Any,
++) -> None:
++  """"""Transfers state directly by matching structure, stripping wrappers.
++
++  This handles the logic for syncing weights where no explicit mapping is provided,
++  common in MaxText -> MaxText workflows. It automatically unwraps common containers
++  like 'base' (MaxText TrainState) and nested 'model' keys (vLLM wrappers).
++
++  Args:
++    src_state: The source state to transfer from.
++    dst_state: The destination state to transfer to.
++    reshard_fn: A function to shard the values.
++  """"""
++  # Unwrap Source (Remove 'base' wrapper from MaxText)
++  # Source structure: {'base': {'decoder': ...}} -> {'decoder': ...}
++  if isinstance(src_state, (dict, nnx.State)) and 'base' in src_state:
++    logging.info(""Unwrapping 'base' key from source state."")
++    src_state = src_state['base']
++
++  # Unwrap Target (Remove nested 'model' wrappers from vLLM)
++  # Target structure: {'model': {'model': {'decoder': ...}}} -> {'decoder': ...}
++  while isinstance(dst_state, (dict, nnx.State)) and 'model' in dst_state:
++    logging.info(""Unwrapping nested 'model' key from target state."")
++    dst_state = dst_state['model']
++
++  # Helper: Convert Target Spec to Pure Dict (Strip NNX Params)
++  # JAX needs a spec tree of pure NamedShardings, not Param(NamedSharding).
++  def to_pure_spec(node):
++    if hasattr(node, 'to_pure_dict'):
++      node = node.to_pure_dict()
++    if isinstance(node, dict):
++      return {k: to_pure_spec(v) for k, v in node.items()}
++    if hasattr(node, 'value'):  # Unwrap Param/Cache/Variable
++      return node.value
++    return node
++
++  # Helper: Intersect Trees (Handle KVCache/RNG mismatches)",why is KV cache relevant during state transfer?,performance,major
+457,physics/period_of_pendulum.py,"@@ -0,0 +1,52 @@
++""""""
++Title : Computing the time period of a simple pendulum
++
++The simple pendulum is a mechanical system that sways or moves in an
++oscillatory motion. The simple pendulum comprises of a small bob of
++mass m suspended by a thin string of length L and secured to a platform
++at its upper end. Its motion occurs in a vertical plane and is mainly
++driven by gravitational force. The period of the pendulum depends on the
++length of the string and the amplitude (the maximum angle) of oscillation.
++However, the effect of the amplitude can be ignored if the amplitude is
++small. It should be noted that the period does not depend on the mass of
++the bob.
++
++For small amplitudes, the period of a simple pendulum is given by the
++following approximation:
++T ≈ 2π * √(L / g)
++
++where:
++L = length of string from which the bob is hanging (in m)
++g = acceleration due to gravity (approx 9.8 m/s²)
++
++Reference : https://byjus.com/jee/simple-pendulum/
++""""""
++from math import pi
++
++from scipy.constants import g
++
++
++def period_of_pendulum(length: float) -> float:
++    """"""
++    >>> period_of_pendulum(1.23)
++    2.2252155506257845
++    >>> period_of_pendulum(2.37)
++    3.0888278441908574
++    >>> period_of_pendulum(5.63)
++    4.76073193364765
++    >>> period_of_pendulum(-12)
++    Traceback (most recent call last):
++        ...
++    ValueError: The length should be non-negative
++    >>> period_of_pendulum(0)
++    0.0
++    """"""
++    if length < 0:
++        raise ValueError(""The length should be non-negative"")
++    return (2 * pi) * (length / g) ** 0.5","```suggestion
+    return 2 * pi * (length / g) ** 0.5
+```
+Minor nitpick: the parentheses around the `2 * pi` are unnecessary",suggestion,minor
+3583,superagi/tools/google_calendar/delete_calendar_event.py,"@@ -12,8 +14,9 @@ class DeleteCalendarEventTool(BaseTool):
+     description: str = ""Delete an event from Google Calendar""
+
+     def _execute(self, event_id: str):
++        session = self.toolkit_config.session
+         toolkit_id = self.toolkit_config.toolkit_id
+-        service = GoogleCalendarCreds().get_credentials(toolkit_id)
++        service = GoogleCalendarCreds(session).get_credentials(toolkit_id)",u can directly use self.toolkit_config.session & self.toolkit_config.toolkit_id it no need for temp var.,suggestion,minor
+4101,tests/core/stable/engines/alpha/test_guideline_actionable_batch.py,"@@ -589,3 +790,430 @@ async def test_that_previously_applied_guidelines_are_not_matched_based_on_irrel
+         guidelines_names=[""unsupported_capability"", ""multiple_capabilities""],
+         capabilities=capabilities,
+     )
++
++
++# ---------------------------
++# New 2-step tests for unaddressed flows
++# ---------------------------",I don't think we should add these tests. Let's discuss tomorrow,suggestion,minor
+3012,megaparse/api/app.py,"@@ -84,18 +92,24 @@ async def parse_file(
+     )
+     try:
+         parser = parser_builder.build(parser_config)
+-        with tempfile.NamedTemporaryFile(
+-            delete=False, suffix=f"".{str(file.filename).split('.')[-1]}""
+-        ) as temp_file:
+-            temp_file.write(file.file.read())
+-            megaparse = MegaParse(parser=parser)
+-            result = await megaparse.aload(file_path=temp_file.name)
+-            return {""message"": ""File parsed successfully"", ""result"": result}
++
++        megaparse = MegaParse(parser=parser)
++        if not file.filename:
++            raise Exception(""No filename provided"")
++        _, extension = os.path.splitext(file.filename)","At some point, it would be safer to use regex with a list of known, supported extensions",suggestion,minor
+1755,src/api-service/__app__/onefuzzlib/azure/image.py,"@@ -21,12 +21,20 @@ def get_os(region: Region, image: str) -> Union[Error, OS]:
+     client = get_compute_client()
+     parsed = parse_resource_id(image)
+     if ""resource_group"" in parsed:
+-        try:
+-            name = client.images.get(
+-                parsed[""resource_group""], parsed[""name""]
+-            ).storage_profile.os_disk.os_type.name
+-        except (ResourceNotFoundError, CloudError) as err:
+-            return Error(code=ErrorCode.INVALID_IMAGE, errors=[str(err)])
++        if parsed[""type""] == ""galleries"":
++            try:
++                name = client.gallery_images.get(
++                    parsed[""resource_group""], parsed[""name""], parsed[""child_name_1""]
++                ).os_type.lower()
++            except (ResourceNotFoundError, CloudError) as err:
++                return Error(code=ErrorCode.INVALID_IMAGE, errors=[str(err)])
++        else:
++            try:
++                name = client.images.get(
++                    parsed[""resource_group""], parsed[""name""]
++                ).storage_profile.os_disk.os_type.lower()
++            except (ResourceNotFoundError, CloudError) as err:","I get the motivation, but I'm not sure it really makes sense to scope these `except` blocks to only these Azure client calls. Not an issue for this PR, though.",suggestion,minor
+1341,llama-index-integrations/vector_stores/llama-index-vector-stores-azureaisearch/llama_index/vector_stores/azureaisearch/base.py,"@@ -1678,6 +1684,9 @@ def _create_query_result(
+
+         search_params = {**self._search_kwargs, **params}
+
++        search_params.pop(""odata_filter"", None)
++        search_params.pop(""odata_filters"", None)
++","Hey @user
+Instead of popping these kwargs in multiple create_query_result function
+I feel it's worth maybe popping them in [here](https://github.com/run-llama/llama_index/pull/19800/files#diff-3fbf222873e40105ff4f70544280197a54f52dbef4e8ae108be327fcf8d3c3ceR1219) line : 1219
+
+def query function, once we have loaded the odata_filter kwargs and then pop those 2 fields from the Kwargs that's initializing the downstream Azure classes",suggestion,minor
+2269,research/audioset/yamnet/export.py,"@@ -164,18 +176,11 @@ def make_tflite_export(weights_path, export_dir):
+   # Check the TF-Lite export.
+   log('Checking TF-Lite model ...')
+   interpreter = tf.lite.Interpreter(tflite_model_path)
+-  audio_input_index = interpreter.get_input_details()[0]['index']
+-  scores_output_index = interpreter.get_output_details()[0]['index']
+-  embeddings_output_index = interpreter.get_output_details()[1]['index']
+-  spectrogram_output_index = interpreter.get_output_details()[2]['index']
++  runner = interpreter.get_signature_runner('serving_default')
+   def run_model(waveform):
+-    interpreter.resize_tensor_input(audio_input_index, [len(waveform)], strict=True)
+-    interpreter.allocate_tensors()
+-    interpreter.set_tensor(audio_input_index, waveform)
+-    interpreter.invoke()
+-    return (interpreter.get_tensor(scores_output_index),
+-            interpreter.get_tensor(embeddings_output_index),
+-            interpreter.get_tensor(spectrogram_output_index))
++    # Signature provides the desired dict of results with entries for
++    # 'predictions', 'embeddings', and 'log_mel_spectrogram'.
++    return runner(waveform=waveform)
+   check_model(run_model, 'yamnet_class_map.csv', params)","could probably just call check_model(runner, ...) and drop the redundant run_model() function altogether.",suggestion,minor
+3789,cookiecutter/repository.py,"@@ -112,9 +113,14 @@ def determine_repo_dir(template, abbreviations, clone_to_dir, checkout,
+         cleanup = False
+
+     for repo_candidate in repository_candidates:
++        if dir:
++            repo_candidate = os.path.join(repo_candidate, dir)
+         if repository_has_cookiecutter_json(repo_candidate):
+             return repo_candidate, cleanup
+
++    if dir:",Could we move this to before L115? This means we could drop the condition on L116...,refactor,minor
+3073,Lib/test/test_ftplib.py,"@@ -902,8 +902,7 @@ def retr():
+         self.client.set_pasv(False)
+         retr()
+
+-
+-@unittest.skip(""TODO: RUSTPYTHON; SSL + asyncore has problem"")
++@unittest.skip('TODO: RUSTPYTHON; SSL + asyncore has problem; flaky')","```suggestion
+
+@user.skip(""TODO: RUSTPYTHON; SSL + asyncore has problem"")
+```
+revert",suggestion,minor
+4805,setup.py,"@@ -41,7 +41,8 @@ def run_tests(self):
+ packages = ['requests']
+
+ requires = [
+-    'chardet>=3.0.2,<5',
++    'charset_normalizer~=1.4.0,<2; python_version >= ""3""',","```suggestion
+    'charset_normalizer~=1.4.0; python_version >= ""3""',
+```",suggestion,minor
+3604,superagi/tools/file/write_file.py,"@@ -47,4 +51,125 @@ def _execute(self, file_name: str, content: str):
+         Returns:
+             success message if message is file written successfully or failure message if writing file fails.
+         """"""
+-        return self.resource_manager.write_file(file_name, content)
++
++        attached_files = self._get_attached_files()
++        file_type = file_name.split('.')[-1].lower()
++
++        if file_type not in ['pdf', 'docx', 'doc']:
++            return self.resource_manager.write_file(file_name, content)
++
++        html_code_content = self._convert_content_into_html(content=content, attached_files = attached_files,formated_for=file_type)
++
++        return self.resource_manager.write_file(file_name, html_code_content)
++
++    def _convert_content_into_html(self, content: str, attached_files: list, formated_for: str) -> str:
++        """"""
++        Converts the content into an HTML file
++        Args:
++            content (str): Content to be beautified and formatted
++            formated_for (str): HTML content to be specifically formatted for a specific document type
++        Returns:
++            HTML Code (str): HTML code of the formated content
++        """"""
++        prompt = PromptReader.read_tools_prompt(__file__, ""content_to_html_prompt.txt"")
++        prompt = prompt.replace(""{content}"", content)
++
++        if image_file_paths := self._get_file_path_of_images(attached_files=attached_files):
++            embedding_image_prompt = PromptReader.read_tools_prompt(__file__, ""add_images_to_html.txt"")
++            for idx, image_path in enumerate(image_file_paths):
++                embedding_image_prompt += f""\n{idx+1}. {image_path}""
++            prompt = prompt.replace(""{embedding_image}"", embedding_image_prompt)
++        else:
++            prompt = prompt.replace(""{embedding_image}"", """")
++
++        messages = [{""role"": ""system"", ""content"": prompt}]
++        result = self.llm.chat_completion(messages, max_tokens=self.max_token_limit)
++
++        if formated_for == 'pdf':
++            return self._html_formatting_for_pdf(content=result[""content""], image_list=image_file_paths)
++        return result['content']
++
++    def _get_file_path_of_images(self, attached_files: list):
++        """"""
++        Filters Images from the attached files list and finds out the corresponding paths.
++
++        Args:
++            attached_files: List of names of files generated
++
++        Returns:
++            Full paths of the image files
++        """"""
++        image_extensions, image_paths = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'],[]
++        for file_name in attached_files:
++            path = self._get_file_path(file_name=file_name)
++            if not os.path.exists(path):
++                continue
++            _, file_extension = os.path.splitext(path)
++            # Check if the file extension is in the list of image extensions
++            if file_extension.lower() in image_extensions:
++                image_paths.append(path)
++        return image_paths
++",It is better to remove this _get_file_path and directly call ResourceHelper()... without using any temporary variable like it is being used in other places in the code,refactor,minor
+2018,tests/rules/test_git_clone_missing.py,"@@ -0,0 +1,53 @@
++import pytest
++from thefuck.rules.git_clone_missing import match, get_new_command
++from thefuck.types import Command
++
++https_url = 'https://github.com/nvbn/thefuck.git'
++http_url = 'http://github.com/nvbn/thefuck.git'
++ssh_url = 'git@github.com:nvbn/thefuck.git'","SSH cloning might also look like `ssh://git@github.com:nvbn/thefuck.git`, at which point I dont think your match rule will work as expected",suggestion,minor
+4207,authentik/enterprise/providers/microsoft_entra/clients/groups.py,"@@ -48,18 +48,13 @@ def to_schema(self, obj: Group, connection: MicrosoftEntraProviderGroup) -> MSGr
+         except TypeError as exc:
+             raise StopSync(exc, obj) from exc
+
+-    def delete(self, obj: Group):
++    def delete(self, identifier: str):
+         """"""Delete group""""""
+-        microsoft_group = MicrosoftEntraProviderGroup.objects.filter(
+-            provider=self.provider, group=obj
+-        ).first()
+-        if not microsoft_group:
+-            self.logger.debug(""Group does not exist in Microsoft, skipping"")
+-            return None",I am trying to remember if there was a reason this check exists,suggestion,minor
+694,scripts/train.py,"@@ -120,6 +120,9 @@ def main(cfg: TrainConfig) -> None:
+         limit_all_gathers=True,
+         device_id=get_local_rank(),
+     )
++    # necessary for torch 2.1.0 and beyond!
++    if torch.__version__ >= ""2.1.0"":","Comparing version strings this way makes me a little nervous. For example:
+
+```python
+""10.0.0"" >= ""2.1.0""  # False
+```
+
+It's better to check this way:
+
+```python
+from packaging import version
+
+if version.parse(torch.__version__) >= version.parse(""2.1.0""):
+    ...
+```",suggestion,minor
+704,olmo/train.py,"@@ -510,13 +556,23 @@ def save_checkpoint(self, checkpoint_type: CheckpointType = CheckpointType.shard
+         else:
+             raise NotImplementedError(checkpoint_type)
+
+-    def restore_checkpoint(self, load_path: PathOrStr, checkpoint_type: Optional[CheckpointType] = None):
++    def restore_checkpoint(
++        self, load_path: PathOrStr, checkpoint_type: Optional[CheckpointType] = None, legacy_mode: bool = False
++    ):
+         if checkpoint_type == CheckpointType.unsharded or (
+             checkpoint_type is None and str(load_path).endswith(""-unsharded"")
+         ):
+             self.restore_unsharded_checkpoint(load_path)
+         elif checkpoint_type == CheckpointType.sharded or checkpoint_type is None:
+-            self.restore_sharded_checkpoint(load_path)
++            try:
++                resource_path(load_path, f""rank{get_global_rank()}.pt"")
++                legacy_mode = True
++            except FileNotFoundError:","This seems to implicitly imply that `FileNotFoundError` will happen if the file passed to `resource_path` does not exist. However, the else block of `resource_path` looks like it can be satisfied by a local file that does not exist.",suggestion,minor
+1830,diagrams/aws/management.py,"@@ -72,6 +84,10 @@ class ControlTower(_Management):
+     _icon = ""control-tower.png""
+
+
++class DevopsGuru(_Management):
++    _icon = ""devops-guru.png""
++","Here too the AWS name is written DevOps with capital O
+
+Amazon DevOps Guru",suggestion,minor
+1820,diagrams/__init__.py,"@@ -101,8 +101,9 @@ def __init__(
+         :param edge_attr: Provide edge_attr dot config attributes.
+         """"""
+         self.name = name
+-
+-        if not filename:
++        if not name and not filename:
++          filename = ""diagrams_file""","Looks good to prevent an exception when there is no filename.
+
+`diagrams_file` is good, but I think `diagrams_image` would be better because the output must be an image file.",suggestion,minor
+2157,research/object_detection/meta_architectures/faster_rcnn_meta_arch.py,"@@ -1973,9 +1973,16 @@ def _compute_second_stage_input_feature_maps(self, features_to_crop,
+     Returns:
+       A float32 tensor with shape [K, new_height, new_width, depth].
+     """"""
++    features_to_crop = [features_to_crop]
++    num_levels = len(features_to_crop)
++    box_levels = None
++    if num_levels != 1:
++      # If there are mutiple levels to select, get the box levels
++      box_levels = ops.fpn_feature_levels(num_levels, num_levels - 1,
++                                          1.0/224, proposal_boxes_normalized)
+     cropped_regions = self._flatten_first_two_dimensions(
+         self._crop_and_resize_fn(",Please update other references of _crop_and_resize_fn in faster_rcnn_meta_arch.py,suggestion,minor
+605,backend/aci/common/db/crud/projects.py,"@@ -213,6 +213,29 @@ def get_api_key(db_session: Session, key: str) -> APIKey | None:
+     return db_session.execute(select(APIKey).filter_by(key_hmac=key_hmac)).scalar_one_or_none()
+
+
++def get_project_agent_org_by_api_key(","name doesn't completely match what it does: api_key_id is not reflected in your function name.
+maybe just use something like get_api_key_context()",suggestion,minor
+3574,superagi/controllers/agent.py,"@@ -102,14 +102,14 @@ def update_agent(agent_id: int, agent: sqlalchemy_to_pydantic(Agent, exclude=[""i
+     """"""
+
+     db_agent = db.session.query(Agent).filter(Agent.id == agent_id).first()
+-    if not db_agent:
++    if not db_agent or db_agent.is_deleted:",pass is_deleted directly in the query,suggestion,minor
+1919,thefuck/rules/pip_install_sudo.py,"@@ -0,0 +1,14 @@
++import re
++from thefuck.utils import sudo_support
++
++
++def match(command, settings):
++    print dir(command)
++    return (('pip' in command.script and 'install' in command.script) and
++            'failed with error code 1' in command.stderr and
++            ('Errno 13' in command.stdout or
++             'Permission denied' in command.stdout))
++
++
++def get_new_command(command, settings):
++    return 'sudo ' + command.script",You might wanna do `return u'sudo {}'.format(command.script)'` to avoid any errors.,style,nit
+397,rich/markdown.py,"@@ -330,15 +330,13 @@ def create(cls, markdown: ""Markdown"", token: Token) -> ""MarkdownElement"":
+         return cls(justify=justify)
+
+     def __init__(self, justify: JustifyMethod) -> None:
+-        self.content: TextType = """"
++        self.content: Text = Text("""", justify=justify)
+         self.justify = justify
+
+     def on_text(self, context: ""MarkdownContext"", text: TextType) -> None:
+-        plain = text.plain if isinstance(text, Text) else text
+-        style = text.style if isinstance(text, Text) else """"
+-        self.content = Text(
+-            plain, justify=self.justify, style=context.style_stack.current
+-        )
++        text = Text(text) if isinstance(text, str) else text
++        text.stylize(context.current_style)
++        self.content.append_text(text)","I was a bit confused here because `style` was being created but not used.
+My change will preserve whatever styling is already in the `Text` instance but will then add the current context style on top of it.
+This felt like the correct thing to do.",style,nit
+1166,fire/inspectutils.py,"@@ -22,6 +22,27 @@
+
+ import IPython
+ import six
++from collections import namedtuple
++
++_FullArgTuple = namedtuple('FullArgSpec', ('args', 'varargs', 'varkw',
++  'defaults', 'kwonlyargs', 'kwonlydefaults', 'annotations'))","format this as:
+
+```python
+_FullArgTuple = namedtuple(
+    'FullArgSpec',
+    ('args', 'varargs', 'varkw', 'defaults',
+     'kwonlyargs', 'kwonlydefaults', 'annotations'))
+```",style,nit
+1186,fire/core.py,"@@ -166,13 +171,18 @@ class FireExit(SystemExit):
+
+   Contains the trace of the Fire program.
+
+-  If not caught, then a FireExit will cause the program to exit with a non-zero
+-  status code.
++  Note:
++    Since this exception inherits from SystemExit/BaseException, you'll have to
++    explicitly catch it with `except SystemExit` or `except FireExit`.
+   """"""
+-
+-  def __init__(self, status, data):
+-    super(FireExit, self).__init__(status)
+-    self.trace = data
++  def __init__(self, code, trace):","Question, should we do:
+
+```
+__init__(self, code, trace)
+```
+
+which shadows trace in global namespace or
+
+```
+__init__(self, code, data)
+```
+
+like you had initially, so trace is not shadowed?
+
+(found a pylintrc from apitools to run on this PR)",style,nit
+2213,research/object_detection/utils/ops_test.py,"@@ -1630,8 +1630,85 @@ def graph_fn():
+     self.assertAllClose(expected_gathered_tensor, gathered_tensor_np)
+
+
++class TestGIoU(test_case.TestCase):
++  def test_giou_general(self):
++    expected_giou_tensor = [
++        0, -1/3, 1/25, -3/4, 0, -98/100
++    ]
++
++    def graph_fn():
++      boxes1 = tf.constant([[3, 4, 5, 6], [3, 3, 5, 5],
++                            [2, 1, 7, 6], [0, 0, 0, 0],
++                            [3, 3, 5, 5], [9, 9, 10, 10]],
++                            dtype=tf.float32)
++      boxes2 = tf.constant([[3, 2, 5, 4], [3, 7, 5, 9],
++                            [4, 3, 5, 4], [5, 5, 10, 10],
++                            [3, 5, 5, 7], [0, 0, 1, 1]], dtype=tf.float32)
++
++      giou = ops.giou(boxes1, boxes2)
++      self.assertEqual(giou.dtype, tf.float32)
++
++      return giou
++
++    giou = self.execute(graph_fn, [])
++    self.assertAllClose(expected_giou_tensor, giou)
++
++  def test_giou_edge_cases(self):","nit: separate these out into two cases:
+`test_giou_with_perfect_overlap`
+`test_giou_with_zero_area_boxes`",nitpick,nit
+4358,pandasai/__init__.py,"@@ -98,22 +98,22 @@ class PandasAI:
+     """"""
+
+     _dl: SmartDatalake = None
+-    _config: Config
++    _config: Union[Config, dict]
+
+     def __init__(
+-            self,
+-            llm=None,
+-            conversational=False,
+-            verbose=False,
+-            enforce_privacy=False,
+-            save_charts=False,
+-            save_charts_path="""",
+-            enable_cache=True,
+-            middlewares=None,
+-            custom_whitelisted_dependencies=None,
+-            enable_logging=True,
+-            non_default_prompts: Optional[Dict[str, Type[Prompt]]] = None,
+-            callback: Optional[BaseCallback] = None,
++        self,
++        llm=None,
++        conversational=False,
++        verbose=False,
++        enforce_privacy=False,
++        save_charts=False,
++        save_charts_path="""",
++        enable_cache=True,
++        middlewares=None,
++        custom_whitelisted_dependencies=None,
++        enable_logging=True,
++        non_default_prompts: Optional[Dict[str, Type[Prompt]]] = None,
++        callback: Optional[BaseCallback] = None,","Didn't touch indents in those places, IDK where this diff came from :/ As well as in my IDE this lines displayed as not modified in the latest commits, strange",style,nit
+1355,llama-dev/llama_dev/release/prepare.py,"@@ -0,0 +1,71 @@
++from pathlib import Path
++
++import click
++
++from llama_dev.utils import (
++    BumpType,
++    bump_version,
++    load_pyproject,
++    update_pyproject_version,
++)
++
++
++def _replace_core_dependency(project_path: Path, old_dep: str, new_dep: str):
++    pyproject_path = project_path / ""pyproject.toml""
++    # Read the file content
++    with open(pyproject_path, ""r"") as f:
++        content = f.read()
++
++    # Replace the old dependency string
++    new_content = content.replace(old_dep, new_dep)
++
++    # Write the updated content back
++    with open(pyproject_path, ""w"") as f:
++        f.write(new_content)
++
++
++@click.command(
++    short_help=""Bump the versions to begin a llama_index umbrella package release""
++)
++@click.option(
++    ""--version-type"",
++    type=click.Choice([t.value for t in BumpType], case_sensitive=False),
++    default=BumpType.PATCH.value,
++    help=""Type of version bump to perform (default: patch)"",
++)
++@click.option(
++    ""--dry-run"",
++    is_flag=True,
++    help=""Show what would be done without making changes"",
++)
++@click.pass_obj
++def prepare(
++    obj: dict,
++    version_type: str,
++    dry_run: bool,
++):","ooc can we also run `docs/scripts/prepare_for_build.py` at the end? This will copy over the changelog, generate new config for api reference, and keep example notebooks up to date. This would also require adding/comitting any changed files 👀  (which also might require running linting lol)
+
+If thats a lot I also don't mind this being a manual step for now",style,nit
+3983,server/src/emcie/server/engines/alpha/event_producer.py,"@@ -94,30 +101,43 @@ def _format_prompt(
+         self,
+         context_variables: list[tuple[ContextVariable, ContextVariableValue]],
+         interaction_history: list[Event],
+-        ordinary_guidelines: Iterable[Guideline],
+-        tool_enabled_guidelines: dict[Guideline, Iterable[Tool]],
++        proposed_guidelines: Iterable[GuidelineProposition],
++        tool_enabled_guidelines: dict[GuidelineProposition, Iterable[Tool]],
+         staged_events: Iterable[ProducedEvent],
+     ) -> str:
+         interaction_events_json = events_to_json(interaction_history)
+         context_values = context_variables_to_json(context_variables)
+         staged_events_as_dict = produced_tools_events_to_dict(staged_events)
+-        all_guidelines = chain(ordinary_guidelines, tool_enabled_guidelines)
++        all_proposed_guidelines = chain(proposed_guidelines, tool_enabled_guidelines)
+
+         rules = ""\n"".join(
+-            f""{i}) When {g.predicate}, then {g.content}""
+-            for i, g in enumerate(all_guidelines, start=1)
++            f""{i}) When {p.guideline.predicate}, then {p.guideline.content}""
++            f""\n\t Priorirty score: {p.score}, rationale: {p.rationale}""","Typo, ""Priorirty"".
+In any case, change from ""Priority score: "" to ""Priority (1-10): "" (the word score isn't needed)",nitpick,nit
+4233,tunix/generate/vllm_sampler.py,"@@ -27,8 +27,14 @@
+ from vllm.outputs import RequestOutput
+
+
++# Enable Jax backend
+ os.environ[""TPU_BACKEND_TYPE""] = ""jax""
++# Colocate vllm engine and worker in the main process
+ os.environ[""VLLM_ENABLE_V1_MULTIPROCESSING""] = ""0""
++# Init vLLM model with random weights",Init vLLM model with random weights because model weights are synced from trainer later on,nitpick,nit
+2224,research/delf/delf/__init__.py,"@@ -35,5 +35,4 @@
+ from delf.python import detect_to_retrieve
+ from delf.python import training
+ from delf.python.training import model
+-from delf.python.training import datasets","just wanted to double-check: after doing this change, the code continues to work, right? I thought some import like this in the top init could still be needed.",nitpick,nit
+4974,modules/sfp_trashpanda.py,"@@ -0,0 +1,147 @@
++# -*- coding: utf-8 -*-
++# -------------------------------------------------------------------------------
++# Name:         sfp_trashpanda
++# Purpose:      Spiderfoot plugin to query Trashpanda - got-hacked.wtf API to gather intelligence about
++#               mentions of your target in paste sites like Pastebin, Ghostbin and Zeropaste
++#
++# Author:      Krishnasis Mandal <krishnasis@hotmail.com>
++#
++# Created:     17/04/2021
++# Copyright:   (c) Steve Micallef
++# Licence:     GPL
++# -------------------------------------------------------------------------------
++
++import json
++import base64
++
++from spiderfoot import SpiderFootEvent, SpiderFootPlugin
++
++
++class sfp_trashpanda(SpiderFootPlugin):
++
++    meta = {
++        'name': ""Trashpanda"",
++        'summary': ""Queries got-hacked.wtf to gather intelligence about metions of target in pastesites"",","Typo (metions) and please mention TrashPanda in the summary, not the website.",nitpick,nit
+1854,python/mlc_chat/nn/kv_cache.py,"@@ -380,7 +381,7 @@ def _attention_prefill(h_kv, h_q, d, dtype):
+     assert dtype == ""float16"", f""TIR attention kernel does not support dtype {dtype} right now""
+     # pylint: disable=invalid-name
+     NUM_BLKS = 16
+-    LOAD_VEC = 8 // (DataType(dtype).bits + 7) / 8  # 8 bytes
++    LOAD_VEC = 8 // ((DataType(dtype).bits + 7) // 8)  # 8 bytes",Thanks for catching this typo!,nitpick,nit
+4510,httpie/output/formatters/xml.py,"@@ -0,0 +1,39 @@
++import sys
++from xml.parsers.expat import ExpatError
++
++from defusedxml.common import DefusedXmlException
++from defusedxml.minidom import parseString
++
++from ...constants import UTF8
++from ...plugins import FormatterPlugin
++
++
++class XMLFormatter(FormatterPlugin):
++
++    def __init__(self, **kwargs):
++        super().__init__(**kwargs)
++        self.enabled = self.format_options['xml']['format']
++
++    def format_body(self, body: str, mime: str):
++        if 'xml' not in mime:
++            return body
++
++        try:
++            parsed_body = parseString(body)
++        except ExpatError:
++            pass  # Invalid XML, ignore.
++        except DefusedXmlException:
++            pass  # Unsafe XML, ignore.
++        else:
++            kwargs = {
++                'indent': ' ' * self.format_options['xml']['indent'],
++                'encoding': parsed_body.encoding or UTF8,
++            }
++            if sys.version_info >= (3, 9):
++                kwargs['standalone'] = parsed_body.standalone
++            body = parsed_body.toprettyxml(**kwargs).decode()","I’d factor it out as a function/static method that accepts the encoding/intent size because we do a similar transformation in the tests, where we could reuse this.",style,nit
+5176,unsloth/models/rl_replacements.py,"@@ -388,6 +389,13 @@ def grpo_trainer__generate_and_score_completions(function_name, function):
+
+         function = patched
+
++    function = function.replace(
++        ""        return output"",
++        """"""        if not _was_training:","Is the indentation here appropriate? Can you please show the final generated code in UnslothGRPOTrainer.py (a screenshot perhaps would help, add it to the PR description)
+
+Also please add your investigation and the summary from the other comment to here in PR desc",style,nit
+2137,official/benchmark/models/resnet_imagenet_main.py,"@@ -148,8 +182,8 @@ def run(flags_obj):
+       boundaries=list(p[1] for p in common.LR_SCHEDULE[1:]),
+       multipliers=list(p[0] for p in common.LR_SCHEDULE),
+       compute_lr_on_cpu=True)
+-  steps_per_epoch = (","If this is a change due to some linter, please check it's the same as the one that Official Models uses (if they mention it).",style,nit
+408,tests/test_cells.py,"@@ -172,12 +187,35 @@ def test_is_single_cell_widths() -> None:
+         (""♻"", [(0, 1, 1)], 1),
+         (""♻️"", [(0, 2, 2)], 2),
+         (""♻♻️"", [(0, 1, 1), (1, 3, 2)], 3),
++        (""\x1b"", [(0, 1, 0)], 0),  # One escape sahould have zero width
++        (""\x1b\x1b"", [(0, 2, 0)], 0),  # Two escapes should have zero width
++        (
++            ""\ufe0f"",
++            [(0, 1, 0)],
++            0,
++        ),  # Variation selector 16, without anything to change should have zero width
++        (
++            ""\ufe0f\ufe0f"",","Typo in comment: ""within noting prior"" → ""with nothing prior"".",nitpick,nit
+666,dolma/util.py,"@@ -40,19 +43,23 @@ def log_record_factory(*args, **kwargs) -> logging.LogRecord:
+
+     logging.setLogRecordFactory(log_record_factory)
+
++    handler: logging.Handler
+     if (
+         os.environ.get(""DOLMA_NONINTERACTIVE"", False)
+         or os.environ.get(""DEBIAN_FRONTEND"", None) == ""noninteractive""
+         or not sys.stdout.isatty()
+     ):
+         handler = logging.StreamHandler(sys.stdout)
+-        formatter = logging.Formatter(""{asctime}\t{hostname}:{local_rank}\t{levelname}\t{message}"", style=""{"")
++        formatter = logging.Formatter(
++            ""%(asctime)s\t%(hostname)s:%(local_rank)s\t%(name)s:%(lineno)s\t%(levelname)s\t%(message)s""","My editor was loosing its mind because trying to figure out the indentation due to the unmatched ""{"" in `style=""{""`. So I just changed this to use the old school formatting.",style,nit
+2221,official/nlp/data/classifier_data_lib.py,"@@ -1275,6 +1276,46 @@ def convert_single_example(ex_index, example, label_list, max_seq_length,
+
+   return feature
+
++class AXgProcessor(DataProcessor):
++  """"""Processor for the AX dataset (GLUE diagnostics dataset).""""""
++
++  def get_dev_examples(self, data_dir):
++    """"""See base class.""""""
++    return self._create_examples(
++        self._read_jsonl(os.path.join(data_dir, ""dev.jsonl"")), ""dev"")
++
++  def get_test_examples(self, data_dir):
++    """"""See base class.""""""
++    return self._create_examples(
++        self._read_jsonl(os.path.join(data_dir, ""test.jsonl"")), ""test"")
++
++  def get_labels(self):
++    """"""See base class.""""""
++    return [""entailment"", ""not_entailment""]
++
++  @staticmethod
++  def get_processor_name():
++    """"""See base class.""""""
++    return ""AXg""
++
++  def _create_examples(self, lines, set_type):
++    """"""Creates examples for the training/dev/test sets.""""""
++    examples = []
++    for line in lines:
++      guid = ""%s-%s"" % (set_type, self.process_text_fn(str(line['idx'])))
++      text_a = self.process_text_fn(line[""hypothesis""])
++      text_b = self.process_text_fn(line[""premise""])
++      label = self.process_text_fn(line[""label""])
++      examples.append(
++          InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
++    return examples",nit: please add one more empty line below,nitpick,nit
+2249,research/delf/delf/python/training/model/delg_model_test.py,"@@ -0,0 +1,153 @@
++# Lint as: python3
++# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the ""License"");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an ""AS IS"" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++# ==============================================================================
++""""""Tests for the DELG model.""""""
++
++from __future__ import absolute_import
++from __future__ import division
++from __future__ import print_function
++from math import floor
++
++from absl.testing import parameterized
++import tensorflow as tf
++
++from delf.python.training.model import delg_model
++
++
++class DelgTest(tf.test.TestCase, parameterized.TestCase):
++
++  @parameterized.named_parameters(
++      ('block3_stridesTrue', True),
++      ('block3_stridesFalse', False),
++  )
++  def test_forward_pass(self, block3_strides):
++    image_size = 321
++    num_classes = 1000
++    batch_size = 2
++    input_shape = (batch_size, image_size, image_size, 3)
++    local_feature_dim = 64
++    feature_map_size = floor(image_size/16) # reduction factor for resnet50",nit: period at end of comment.,nitpick,nit
+2840,openbb_platform/core/openbb_core/provider/standard_models/cpi.py,"@@ -80,9 +80,11 @@ class ConsumerPriceIndexQueryParams(QueryParams):
+         description=QUERY_DESCRIPTIONS.get(""units"", """")
+         + """"""
+     Options:
+-    - `growth_previous`: growth from the previous period
+-    - `growth_same`: growth from the same period in the previous year
+-    - `index_2015`: index with base year 2015."""""",
++    - `growth_previous`: percent growth from the previous period.
++      If monthly data, this is month-over-month, etc
++    - `growth_same`: percent growth from the same period in the previous year.
++      if looking at monthly data, this would be year-over-year, etc.
++    - `index_2015`: rescaled index value, such that the value in 2015 is 100."""""",","I think we need to make a grammar style choice.
+
+'all lower case.  even after a period.'
+'Traditional capitalization for all phrases.'
+
+I don't have a horse in the race, but am just looking for a definitive choice.",nitpick,nit
+2294,official/nlp/modeling/layers/on_device_embedding.py,"@@ -38,27 +38,33 @@ class OnDeviceEmbedding(tf.keras.layers.Layer):
+       lookup. Defaults to False (that is, using tf.gather). Setting this option
+       to True may improve performance, especially on small vocabulary sizes, but
+       will generally require more memory.
++    use_scale: Whether to scale the output embeddings. Defaults to False (that
++      is, not to scale). Setting this option to True will let values in output
++      embeddings multiplied by self._embedding_width ** 0.5.
+   """"""
+
+   def __init__(self,
+                vocab_size,
+                embedding_width,
+                initializer=""glorot_uniform"",
+                use_one_hot=False,
++               use_scale=False,
+                **kwargs):
+
+     super(OnDeviceEmbedding, self).__init__(**kwargs)
+     self._vocab_size = vocab_size
+     self._embedding_width = embedding_width
+     self._initializer = initializer
+     self._use_one_hot = use_one_hot
++    self._use_scale = use_scale
+
+   def get_config(self):
+     config = {
+         ""vocab_size"": self._vocab_size,
+         ""embedding_width"": self._embedding_width,
+         ""initializer"": self._initializer,
+         ""use_one_hot"": self._use_one_hot,
++        ""use_scale"": self._use_scale,
+     }
+     base_config = super(OnDeviceEmbedding, self).get_config()
+     return dict(list(base_config.items()) + list(config.items()))
+@@ -85,4 +91,6 @@ def call(self, inputs):
+         # Work around b/142213824: prefer concat to shape over a Python list.
+         tf.concat([tf.shape(inputs), [self._embedding_width]], axis=0))
+     embeddings.set_shape(inputs.shape.as_list() + [self._embedding_width])
++    if self._use_scale:
++      embeddings *= self._embedding_width ** 0.5
+     return embeddings",,none,none
+49,tests/test_db.py,"@@ -1,14 +1,126 @@
+-from gpt_engineer.db import DB
+-
+-
+-def test_db():
+-    # use /tmp for testing
+-    db = DB(""/tmp/test_db"")
+-    db[""test""] = ""test""
+-    assert db[""test""] == ""test""
+-    db[""test""] = ""test2""
+-    assert db[""test""] == ""test2""
+-    db[""test2""] = ""test2""
+-    assert db[""test2""] == ""test2""
+-    assert db[""test""] == ""test2""
+-    print(""test_db passed"")
++import pytest
++
++from gpt_engineer.db import DB, DBs
++
++
++def test_DB_operations(tmp_path):
++    # Test initialization
++    db = DB(tmp_path)
++
++    # Test __setitem__
++    db[""test_key""] = ""test_value""
++
++    assert (tmp_path / ""test_key"").is_file()
++
++    # Test __getitem__
++    val = db[""test_key""]
++
++    assert val == ""test_value""
++
++    # Test error on getting non-existent key
++    with pytest.raises(KeyError):
++        db[""non_existent""]
++
++    # Test error on setting non-str or non-bytes value
++    with pytest.raises(TypeError):
++        db[""key""] = [""Invalid"", ""value""]
++
++
++def test_DBs_initialization(tmp_path):
++    dir_names = [""memory"", ""logs"", ""preprompts"", ""input"", ""workspace""]
++    directories = [tmp_path / name for name in dir_names]
++
++    # Create DB objects
++    dbs = [DB(dir) for dir in directories]
++
++    # Create DB instance
++    dbs_instance = DBs(*dbs)
++
++    assert isinstance(dbs_instance.memory, DB)
++    assert isinstance(dbs_instance.logs, DB)
++    assert isinstance(dbs_instance.preprompts, DB)
++    assert isinstance(dbs_instance.input, DB)
++    assert isinstance(dbs_instance.workspace, DB)
++
++
++def test_invalid_path():
++    with pytest.raises(PermissionError):
++        # Test with a path that will raise a permission error
++        DB(""/root/test"")
++
++
++def test_large_files(tmp_path):
++    db = DB(tmp_path)
++    large_content = ""a"" * (10**6)  # 1MB of data
++
++    # Test write large files
++    db[""large_file""] = large_content
++
++    # Test read large files
++    assert db[""large_file""] == large_content
++
++
++def test_concurrent_access(tmp_path):
++    import threading
++
++    db =",,none,none
+5027,test/unit/modules/test_sfp_ipregistry.py,"@@ -0,0 +1,83 @@
++# test_sfp_ipregistry.py
++import unittest
++
++from modules.sfp_ipregistry import sfp_ipregistry
++from sflib import SpiderFoot
++from spiderfoot import SpiderFootEvent, SpiderFootTarget
++
++
++class TestModuletemplate(unittest.TestCase):
++    """"""
++    Test modules.sfp_ipregistry
++    """"""
++
++    default_options = {
++        ""_debug"": False,  # Debug
++        ""__logging"": True,  # Logging in general
++        ""__outputfilter"": None,  # Event types to filter from modules' output
++        ""_useragent"": ""Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0"",  # User-Agent to use for HTTP requests
++        ""_dnsserver"": """",  # Override the default resolver
++        ""_fetchtimeout"": 5,  # number of seconds before giving up on a fetch
++        ""_internettlds"": ""https://publicsuffix.org/list/effective_tld_names.dat"",
++        ""_internettlds_cache"": 72,
++        ""_genericusers"": ""abuse,admin,billing,compliance,devnull,dns,ftp,hostmaster,inoc,ispfeedback,ispsupport,list-request,list,maildaemon,marketing,noc,no-reply,noreply,null,peering,peering-notify,peering-request,phish,phishing,postmaster,privacy,registrar,registry,root,routing-registry,rr,sales,security,spam,support,sysadmin,tech,undisclosed-recipients,unsubscribe,usenet,uucp,webmaster,www"",
++        ""__version__"": ""3.3-DEV"",
++        ""__database"": ""spiderfoot.test.db"",  # note: test database file
++        ""__modules__"": None,  # List of modules. Will be set after start-up.
++        ""_socks1type"": """",
++        ""_socks2addr"": """",
++        ""_socks3port"": """",
++        ""_socks4user"": """",
++        ""_socks5pwd"": """",
++        ""_torctlport"": 9051,
++        ""__logstdout"": False,
++    }
++
++    def test_opts(self):
++        module = sfp_ipregistry()
++        self.assertEqual(len(module.opts), len(module.optdescs))
++
++    def test_setup(self):
++        """"""
++        Test setup(self, sfc, userOpts=dict())
++        """"""
++        sf = SpiderFoot(self.default_options)
++
++        module = sfp_ipregistry",,none,none
+3672,tests/providers/test_sambanova_provider.py,"@@ -0,0 +1,46 @@
++from unittest.mock import MagicMock, patch
++
++import pytest
++
++from aisuite.providers.sambanova_provider import SambanovaProvider
++
++
++@pytest.fixture(autouse=True)
++def set_api_key_env_var(monkeypatch):
++    """"""Fixture to set environment variables for tests.""""""
++    monkeypatch.setenv(""SAMBANOVA_API_KEY"", ""test-api-key"")
++
++
++def test_sambanova_provider():
++    """"""High-level test that the provider is initialized and chat completions are requested successfully.""""""
++
++    user_greeting = ""Hello!""
++    message_history = [{""role"": ""user"", ""content"": user_greeting}]
++    selected_model = ""our-favorite-model""
++    chosen_temperature = 0.75
++    response_text_content = ""mocked-text-response-from-model""
++
++    provider = SambanovaProvider()
++    mock_response = MagicMock()
++    mock_response.choices = [MagicMock()]
++    mock_response.choices[0].message = MagicMock()
++    mock_response.choices[0].message.content = response_text_content
++
++    with patch.object(
++        provider.client.chat.completions,
++        ""create"",
++        return_value=mock_response,
++    ) as mock_create:
++        response = provider.chat_completions_create(
++            messages=message_history,
++            model=selected_model,
++            temperature=chosen_temperature,
++        )
++
++        mock_create.assert_called_with(
++            messages=message_history,
++            model=selected_model,
++            temperature=chosen_temperature,
++        )
++
++        assert response.choices[0].message.content == response_text_content",,none,none
+1112,qa/rpc-tests/auxpow.py,"@@ -61,7 +61,7 @@ def run_test(self):
+                 raise ex
+         self.sync_all()
+
+-        # 5. mine blocks until we're in in auxpow era
++        # 5. mine blocks until we're in auxpow era
+         self.nodes[1].generate(self.AUXPOW_START - self.DIGISHIELD_START)
+         self.sync_all()",,none,none
+1577,api/controllers/console/setup.py,"@@ -1,20 +1,19 @@
++from typing import Literal
++
+ from flask import request
+-from flask_restx import Resource, fields
+ from pydantic import BaseModel, Field, field_validator
+
+ from configs import dify_config
++from controllers.fastopenapi import console_router
+ from libs.helper import EmailStr, extract_remote_ip
+ from libs.password import valid_password
+ from models.model import DifySetup, db
+ from services.account_service import RegisterService, TenantService
+
+-from . import console_ns
+ from .error import AlreadySetupError, NotInitValidateError
+ from .init_validate import get_init_validate_status
+ from .wraps import only_edition_self_hosted
+
+-DEFAULT_REF_TEMPLATE_SWAGGER_2_0 = ""#/definitions/{model}""
+-
+
+ class SetupRequestPayload(BaseModel):
+     email: EmailStr = Field(..., description=""Admin email address"")
+@@ -28,78 +27,66 @@ def validate_password(cls, value: str) -> str:
+         return valid_password(value)
+
+
+-console_ns.schema_model(
+-    SetupRequestPayload.__name__,
+-    SetupRequestPayload.model_json_schema(ref_template=DEFAULT_REF_TEMPLATE_SWAGGER_2_0),
+-)
++class SetupStatusResponse(BaseModel):
++    step: Literal[""not_started"", ""finished""] = Field(description=""Setup step status"")
++    setup_at: str | None = Field(default=None, description=""Setup completion time (ISO format)"")
+
+
+-@console_ns.route(""/setup"")
+-class SetupApi(Resource):
+-    @console_ns.doc(""get_setup_status"")
+-    @console_ns.doc(description=""Get system setup status"")
+-    @console_ns.response(
+-        200,
+-        ""Success"",
+-        console_ns.model(
+-            ""SetupStatusResponse"",
+-            {
+-                ""step"": fields.String(description=""Setup step status"", enum=[""not_started"", ""finished""]),
+-                ""setup_at"": fields.String(description=""Setup completion time (ISO format)"", required=False),
+-            },
+-        ),
+-    )
+-    def get(self):
+-        """"""Get system setup status""""""
+-        if dify_config.EDITION == ""SELF_HOSTED"":
+-            setup_status =",,none,none
+2054,tests/rules/test_wrong_hyphen_before_subcommand.py,"@@ -0,0 +1,30 @@
++import pytest
++
++from thefuck.rules.wrong_hyphen_before_subcommand import match, get_new_command
++from thefuck.types import Command
++
++
++@pytest.fixture(autouse=True)
++def get_all_executables(mocker):
++    mocker.patch(
++        ""thefuck.rules.wrong_hyphen_before_subcommand.get_all_executables"",
++        return_value=[""git"", ""apt"", ""apt-get"", ""ls"", ""pwd""],
++    )
++
++
++@pytest.mark.parametrize(""script"", [""git-log"", ""apt-install python""])
++def test_match(script):
++    assert match(Command(script, """"))
++
++
++@pytest.mark.parametrize(""script"", [""ls -la"", ""git2-make"", ""apt-get install python""])
++def test_not_match(script):
++    assert not match(Command(script, """"))
++
++
++@pytest.mark.parametrize(
++    ""script, new_command"",
++    [(""git-log"", ""git log""), (""apt-install python"", ""apt install python"")],
++)
++def test_get_new_command(script, new_command):
++    assert get_new_command(Command(script, """")) == new_command",,none,none
+2397,autogpt_platform/backend/backend/blocks/ai_condition.py,"@@ -0,0 +1,214 @@
++from typing import Any
++
++from backend.blocks.llm import (
++    TEST_CREDENTIALS,
++    TEST_CREDENTIALS_INPUT,
++    AIBlockBase,
++    AICredentials,
++    AICredentialsField,
++    LlmModel,
++    LLMResponse,
++    llm_call,
++)
++from backend.data.block import BlockCategory, BlockOutput, BlockSchema
++from backend.data.model import APIKeyCredentials, NodeExecutionStats, SchemaField
++
++
++class AIConditionBlock(AIBlockBase):
++    """"""
++    An AI-powered condition block that uses natural language to evaluate conditions.
++
++    This block allows users to define conditions in plain English (e.g., ""the input is an email address"",
++    ""the input is a city in the USA"") and uses AI to determine if the input satisfies the condition.
++    It provides the same yes/no data pass-through functionality as the standard ConditionBlock.
++    """"""
++
++    class Input(BlockSchema):
++        input_value: Any = SchemaField(
++            description=""The input value to evaluate with the AI condition"",
++            placeholder=""Enter the value to be evaluated (text, number, or any data)"",
++        )
++        condition: str = SchemaField(
++            description=""A plaintext English description of the condition to evaluate"",
++            placeholder=""E.g., 'the input is the body of an email', 'the input is a City in the USA', 'the input is an error or a refusal'"",
++        )
++        yes_value: Any = SchemaField(
++            description=""(Optional) Value to output if the condition is true. If not provided, input_value will be used."",
++            placeholder=""Leave empty to use input_value, or enter a specific value"",
++            default=None,
++        )
++        no_value: Any = SchemaField(
++            description=""(Optional) Value to output if the condition is false. If not provided, input_value will be used."",
++            placeholder=""Leave empty to use input_value, or enter a specific value"",
++            default=None,
++        )
++        model: LlmModel = SchemaField(
++",,none,none
+2697,pyboy/pyboy.py,"@@ -348,9 +348,10 @@ def _tick(self, render):
+                 self.mb.breakpoint_reinject()
+
+                 # NOTE: PC has not been incremented when hitting breakpoint!
+-                breakpoint_index = self.mb.breakpoint_reached()
+-                if breakpoint_index != -1:
+-                    self.mb.breakpoint_remove(breakpoint_index)
++                breakpoint_meta = self.mb.breakpoint_reached()
++                if breakpoint_meta != (-1, -1, -1):
++                    bank, addr, _ = breakpoint_meta
++                    self.mb.breakpoint_remove(bank, addr)
+                     self.mb.breakpoint_singlestep_latch = 0
+
+                     if not self._handle_hooks():
+@@ -1093,6 +1094,7 @@ def hook_register(self, bank, addr, callback, context):
+             raise ValueError(""Hook already registered for this bank and address."")
+         self.mb.breakpoint_add(bank, addr)
+         bank_addr_opcode = (bank & 0xFF) << 24 | (addr & 0xFFFF) << 8 | (opcode & 0xFF)
++        logger.debug(""Adding hook for opcode %08x"", bank_addr_opcode)
+         self._hooks[bank_addr_opcode] = (callback, context)
+
+     def hook_deregister(self, bank, addr):
+@@ -1125,12 +1127,12 @@ def hook_deregister(self, bank, addr):
+         if bank is None and isinstance(addr, str):
+             bank, addr = self._lookup_symbol(addr)
+
+-        index = self.mb.breakpoint_find(bank, addr)
+-        if index == -1:
++        breakpoint_meta = self.mb.breakpoint_find(bank, addr)
++        if not breakpoint_meta:
+             raise ValueError(""Breakpoint not found for bank and addr"")
++        _, _, opcode = breakpoint_meta
+
+-        _, _, opcode = self.mb.breakpoints_list[index]
+-        self.mb.breakpoint_remove(index)
++        self.mb.breakpoint_remove(bank, addr)
+         bank_addr_opcode = (bank & 0xFF) << 24 | (addr & 0xFFFF) << 8 | (opcode & 0xFF)
+         self._hooks.pop(bank_addr_opcode)",,none,none
+831,dolma/composer.py,"@@ -13,11 +13,11 @@
+ from torchmetrics import Metric
+
+ from .aliases import BatchDict
+-from .config import ModelConfig
++from .config import ModelConfig, SchedulerConfig, SchedulerType
+ from .model import DolmaGPT, DolmaGPTOutput
+ from .util import echo
+
+-__all__ = [""ComposerDolmaGPT"", ""SpeedMonitorMFU"", ""DolmaConsoleLogger""]
++__all__ = [""ComposerDolmaGPT"", ""SpeedMonitorMFU"", ""DolmaConsoleLogger"", ""build_scheduler"", ""build_algorithm""]
+
+
+ class ComposerDolmaGPT(ComposerModel):
+@@ -273,3 +273,35 @@ def _log_hparams_to_console(self):
+
+     def _log_to_console(self, log_str: str):
+         echo.info(log_str)
++
++
++def build_scheduler(cfg: SchedulerConfig):
++    from composer.optim.scheduler import (
++        ConstantWithWarmupScheduler,
++        CosineAnnealingWithWarmupScheduler,
++        LinearWithWarmupScheduler,
++    )
++
++    if cfg.name == SchedulerType.constant_with_warmup:
++        return ConstantWithWarmupScheduler(t_warmup=cfg.t_warmup)
++    elif cfg.name == SchedulerType.cosine_with_warmup:
++        return CosineAnnealingWithWarmupScheduler(t_warmup=cfg.t_warmup, alpha_f=cfg.alpha_f)
++    elif cfg.name == SchedulerType.linear_decay_with_warmup:
++        return LinearWithWarmupScheduler(t_warmup=cfg.t_warmup, alpha_f=cfg.alpha_f)
++    else:
++        raise NotImplementedError(f""Not sure how to build scheduler '{cfg.name}'"")
++
++
++def build_algorithm(name: str, kwargs: Dict[str, Any]):
++    from composer import algorithms
++
++    if name == ""gradient_clipping"":
++        return algorithms.GradientClipping(**kwargs)
++    elif name == ""fused_layernorm"":
++        return algorithms.FusedLayerNorm(**kwargs)
++    elif name == ""gated_linear_units"":
++        return algorithms.GatedLinearUnits(**kwargs)
++    elif name == ""low_precision_layernorm"":
++        return algorithms.LowPrecisionLayerNorm(**kwargs)
++    else:
++        raise NotImplementedError(f""Not sure how to build algorithm '{name}'"")",,none,none
+2498,accelerator/real_accelerator.py,"@@ -125,10 +125,9 @@ def get_accelerator():
+         if accelerator_name is None:
+             try:
+                 import intel_extension_for_pytorch as ipex
++
+                 if ipex._C._has_xpu():
+                     accelerator_name = ""xpu""
+-                else:
+-                    accelerator_name = ""cpu""
+             except ImportError as e:
+                 pass
+         if accelerator_name is None:
+@@ -162,7 +161,6 @@ def get_accelerator():
+             except ImportError as e:
+                 pass
+         if accelerator_name is None:
+-            # borrow this log from PR#5084
+             try:
+                 import torch
+
+@@ -174,16 +172,16 @@ def get_accelerator():
+                 # For reference: https://github.com/microsoft/DeepSpeed/pull/6810
+                 if torch.cuda.device_count() > 0 and torch.cuda.is_available():  #ignore-cuda
+                     accelerator_name = ""cuda""
+-                else:
+-                    if accel_logger is not None:
+-                        accel_logger.warn(
+-                            ""Setting accelerator to CPU. If you have GPU or other accelerator, we were unable to detect it.""
+-                        )
+-                    accelerator_name = ""cpu""
+             except (RuntimeError, ImportError) as e:
+                 # TODO need a more decent way to detect which accelerator to use, consider using nvidia-smi command for detection
+-                accelerator_name = ""cuda""
+                 pass
++        if accelerator_name is None:
++            # borrow this log from PR#5084
++            if accel_logger is not None:
++                accel_logger.warn(
++                    ""Setting accelerator to CPU. If you have GPU or other accelerator, we were unable to detect it."")
++            # cpu added as catch-all when accelerator detection fails
++            accelerator_name = ""cpu""
+
+         ds_set_method = ""auto detect""",,none,none
+3497,src/textual/drivers/linux_driver.py,"@@ -49,6 +49,42 @@ def __init__(
+         self._key_thread: Thread | None = None
+         self._writer_thread: WriterThread | None = None
+
++        # If we've finally and properly come back from a SIGSTOP we want to
++        # be able to ask the app to publish its resume signal; to do that we
++        # need to know that we came in here via a SIGTSTP; this flag helps
++        # keep track of this.
++        self._must_signal_resume = False
++
++        # Put handlers for SIGTSTP and SIGCONT in place. These are necessary
++        # to support the user pressing Ctrl+Z (or whatever the dev might
++        # have bound to call the relevant action on App) to suspend the
++        # application.
++        signal.signal(signal.SIGTSTP, self._sigtstp_application)
++        signal.signal(signal.SIGCONT, self._sigcont_application)
++
++    def _sigtstp_application(self, *_) -> None:
++        """"""Handle a SIGTSTP signal.""""""
++        # If we're supposed to auto-restart, that means we need to shut down
++        # first.
++        if self._auto_restart:
++            self.suspend_application_mode()
++            # Flag that we'll need to signal a resume on successful startup
++            # again.
++            self._must_signal_resume = True
++        # Now send a SIGSTOP to our process to *actually* suspend the
++        # process.
++        os.kill(os.getpid(), signal.SIGSTOP)
++
++    def _sigcont_application(self, *_) -> None:
++        """"""Handle a SICONT application.""""""
++        if self._auto_restart:
++            self.resume_application_mode()
++
++    @property
++    def can_suspend(self) -> bool:
++        """"""Can this driver be suspended?""""""
++        return True
++
+     def __rich_repr__(self) -> rich.repr.Result:
+         yield self._app
+
+@@ -115,6 +151,34 @@ def write(self, data: str) -> None:
+
+     def start_application_mode(self):
+         """"""Start application mode.""""""
++
++        def _stop_again(*_) -> None:
++            """"""Signal handler that will put the application back to sleep.""""""
++",,none,none
+1562,api/events/event_handlers/queue_credential_sync_when_tenant_created.py,"@@ -0,0 +1,19 @@
++from configs import dify_config
++from events.tenant_event import tenant_was_created
++from services.enterprise.workspace_sync import WorkspaceSyncService
++
++
++@tenant_was_created.connect
++def handle(sender, **kwargs):
++    """"""Queue credential sync when a tenant/workspace is created.""""""
++    # Only queue sync tasks if plugin manager (enterprise feature) is enabled
++    if not dify_config.ENTERPRISE_ENABLED:
++        return
++
++    tenant = sender
++
++    # Determine source from kwargs if available, otherwise use generic
++    source = kwargs.get(""source"", ""tenant_created"")
++
++    # Queue credential sync task to Redis for enterprise backend to process
++    WorkspaceSyncService.queue_credential_sync(tenant.id, source=source)",,none,none
+3535,src/textual/constants.py,"@@ -118,3 +118,8 @@ def _get_textual_animations() -> AnimationLevel:
+
+ ESCAPE_DELAY: Final[float] = _get_environ_int(""ESCDELAY"", 100) / 1000.0
+ """"""The delay (in seconds) before reporting an escape key (not used if the extend key protocol is available).""""""
++
++SLOW_THRESHOLD: int = _get_environ_int(""TEXTUAL_SLOW_THRESHOLD"", 500)
++""""""The time threshold (in milliseconds) after which a warning is logged
++if message processing exceeds this duration.
++""""""",,none,none
+2340,autogpt_platform/backend/backend/data/graph.py,"@@ -19,6 +19,8 @@
+
+ from backend.blocks.agent import AgentExecutorBlock
+ from backend.blocks.io import AgentInputBlock, AgentOutputBlock
++from backend.blocks.llm import LlmModel
++from backend.data.db import prisma as db
+ from backend.util import type as type_utils
+
+ from .block import Block, BlockInput, BlockSchema, BlockType, get_block, get_blocks
+@@ -1026,3 +1028,40 @@ async def fix_llm_provider_credentials():
+             where={""id"": node_id},
+             data={""constantInput"": Json(node_preset_input)},
+         )
++
++
++async def migrate_llm_models(migrate_to: LlmModel):
++    """"""
++    Update all LLM models in all AI blocks that don't exist in the enum.
++    Note: Only updates top level LlmModel SchemaFields of blocks (won't update nested fields).
++    """"""
++    logger.info(""Migrating LLM models"")
++    # Scan all blocks and search for LlmModel fields
++    llm_model_fields: dict[str, str] = {}  # {block_id: field_name}
++
++    # Search for all LlmModel fields
++    for block_type in get_blocks().values():
++        block = block_type()
++        from pydantic.fields import FieldInfo
++
++        fields: dict[str, FieldInfo] = block.input_schema.model_fields
++
++        # Collect top-level LlmModel fields
++        for field_name, field in fields.items():
++            if field.annotation == LlmModel:
++                llm_model_fields[block.id] = field_name
++
++    # Update each block
++    for id, path in llm_model_fields.items():
++        # Convert enum values to a list of strings for the SQL query
++        enum_values = [v.value for v in LlmModel.__members__.values()]
++
++        query = f""""""
++            UPDATE ""AgentNode""
++            SET ""constantInput"" = jsonb_set(""constantInput"", '{{{path}}}', '""{migrate_to.value}""', true)
++            WHERE ""agentBlockId"" = '{id}'
++            AND ""constantInput"" ? '{path}'
++            AND ""constantInput""->>'{path}' NOT IN ({','.join(f""'{value}'"" for value in enum_values)})
++            """"""
++
++        await db.execute_raw(query)",,none,none
+536,scrapegraphai/nodes/merge_answers_node.py,"@@ -0,0 +1,100 @@
++""""""
++MergeAnswersNode Module
++""""""
++
++# Imports from standard library
++from typing import List, Optional
++from tqdm import tqdm
++
++# Imports from Langchain
++from langchain.prompts import PromptTemplate
++from langchain_core.output_parsers import JsonOutputParser
++
++# Imports from the library
++from .base_node import BaseNode
++
++
++class MergeAnswersNode(BaseNode):
++    """"""
++    A node responsible for merging the answers from multiple graph instances into a single answer.
++
++    Attributes:
++        llm_model: An instance of a language model client, configured for generating answers.
++        verbose (bool): A flag indicating whether to show print statements during execution.
++
++    Args:
++        input (str): Boolean expression defining the input keys needed from the state.
++        output (List[str]): List of output keys to be updated in the state.
++        node_config (dict): Additional configuration for the node.
++        node_name (str): The unique identifier name for the node, defaulting to ""GenerateAnswer"".
++    """"""
++
++    def __init__(self, input: str, output: List[str], node_config: Optional[dict] = None,
++                 node_name: str = ""MergeAnswers""):
++        super().__init__(node_name, ""node"", input, output, 2, node_config)
++
++        self.llm_model = node_config[""llm_model""]
++        self.verbose = True if node_config is None else node_config.get(
++            ""verbose"", False)
++
++    def execute(self, state: dict) -> dict:
++        """"""
++        Executes the node's logic to merge the answers from multiple graph instances into a single answer.
++
++        Args:
++            state (dict): The current state of the graph. The input keys will be used
++                            to fetch the correct data from the state.
++
++        Returns:
++            dict: The updated state with the output key containing the generated answer.
++
++        Raises:
++            KeyError: If the input keys are not found in the state, indicating
++",,none,none
+3935,letta/client/client.py,"@@ -276,10 +276,10 @@ def get_messages(
+     ) -> List[Message]:
+         raise NotImplementedError
+
+-    def list_models(self) -> List[LLMConfig]:
++    def list_model_configs(self) -> List[LLMConfig]:
+         raise NotImplementedError
+
+-    def list_embedding_models(self) -> List[EmbeddingConfig]:
++    def list_embedding_configs(self) -> List[EmbeddingConfig]:
+         raise NotImplementedError
+
+
+@@ -1234,32 +1234,6 @@ def detach_source(self, source_id: str, agent_id: str):
+         assert response.status_code == 200, f""Failed to detach source from agent: {response.text}""
+         return Source(**response.json())
+
+-    # server configuration commands
+-
+-    def list_models(self):
+-        """"""
+-        List available LLM models
+-
+-        Returns:
+-            models (List[LLMConfig]): List of LLM models
+-        """"""
+-        response = requests.get(f""{self.base_url}/{self.api_prefix}/models"", headers=self.headers)
+-        if response.status_code != 200:
+-            raise ValueError(f""Failed to list models: {response.text}"")
+-        return [LLMConfig(**model) for model in response.json()]
+-
+-    def list_embedding_models(self):
+-        """"""
+-        List available embedding models
+-
+-        Returns:
+-            models (List[EmbeddingConfig]): List of embedding models
+-        """"""
+-        response = requests.get(f""{self.base_url}/{self.api_prefix}/models/embedding"", headers=self.headers)
+-        if response.status_code != 200:
+-            raise ValueError(f""Failed to list embedding models: {response.text}"")
+-        return [EmbeddingConfig(**model) for model in response.json()]
+-
+     # tools
+
+     def get_tool_id(self, tool_name: str):
+@@ -2572,24 +2546,6 @@ def get_messages(
+             return_message_object=True,
+         )
+
+-    def list_models(self) -> List[LLMConfig]:
+-        """"""
+-        List available LLM models
+-
+-        Returns:
+-            models (List[LLMConfig]): List of LLM models
+-        """"""
+-        return self.server.list_models(",,none,none
+1551,api/services/annotation_service.py,"@@ -77,7 +77,7 @@ def up_insert_app_annotation_from_message(cls, args: dict, app_id: str) -> Messa
+         if annotation_setting:
+             add_annotation_to_index_task.delay(
+                 annotation.id,
+-                annotation.question,
++                question,
+                 current_tenant_id,
+                 app_id,
+                 annotation_setting.collection_binding_id,
+@@ -253,7 +253,7 @@ def update_app_annotation_directly(cls, args: dict, app_id: str, annotation_id:
+         if app_annotation_setting:
+             update_annotation_to_index_task.delay(
+                 annotation.id,
+-                annotation.question,
++                annotation.question_text,
+                 current_tenant_id,
+                 app_id,
+                 app_annotation_setting.collection_binding_id,",,none,none
+2644,manimlib/mobject/svg/mtex_mobject.py,"@@ -1,6 +1,5 @@
+ from __future__ import annotations
+
+-import re
+ import colour
+ from typing import Union, Sequence
+
+@@ -57,7 +56,7 @@ def hash_seed(self) -> tuple:
+
+     def get_file_path_by_content(self, content: str) -> str:
+         full_tex = self.get_tex_file_body(content)
+-        with display_during_execution(f""Writing \""{self.string}\""""):
++        with display_during_execution(f""Writing \""{self.tex_string}\""""):
+             file_path = self.tex_to_svg_file_path(full_tex)
+         return file_path
+
+@@ -116,19 +115,19 @@ def get_backslash_indices(self) -> list[int]:
+             if (span[1] - span[0]) % 2 == 1
+         ]
+
+-    def get_unescaped_char_spans(self, *chars: str):
++    def get_unescaped_char_spans(self, chars: str):
+         return sorted(filter(
+             lambda span: span[0] - 1 not in self.backslash_indices,
+-            self.find_substr(*chars)
++            self.find_substrs(list(chars))
+         ))
+
+     def get_brace_index_pairs(self) -> list[Span]:
+-        string = self.string
+         left_brace_indices = []
+         right_brace_indices = []
+         left_brace_indices_stack = []
+-        for index, _ in self.get_unescaped_char_spans(""{"", ""}""):
+-            if string[index] == ""{"":
++        for span in self.get_unescaped_char_spans(""{}""):
++            index = span[0]
++            if self.get_substr(span) == ""{"":
+                 left_brace_indices_stack.append(index)
+             else:
+                 if not left_brace_indices_stack:
+@@ -141,18 +140,18 @@ def get_brace_index_pairs(self) -> list[Span]:
+         return list(zip(left_brace_indices, right_brace_indices))
+
+     def get_script_char_spans(self) -> list[int]:
+-        return self.get_unescaped_char_spans(""_"", ""^"")
++        return self.get_unescaped_char_spans(""_^"")
+
+     def get_script_content_spans(self) -> list[Span]:
+         result = []
+         brace_indices_dict = dict(self.brace_index_pairs)
++        script_pattern = r""[a-zA-Z0-9]|\\[a-zA-Z]+""
+         for script",,none,none
+4639,python/tests/hello_dataclasses.py,"@@ -0,0 +1,37 @@
++
++from typing import Annotated
++from typechat import python_type_to_typescript_schema
++
++from dataclasses import dataclass, field
++
++@dataclass
++class Options:
++    """"""
++    TODO: someone add something here.
++    """"""
++    ...
++
++@dataclass
++class Response:
++    attr_1: str
++    attr_2: Annotated[int, ""Hello!""]
++    attr_3: str | None
++    attr_4: str = ""hello!""
++    attr_5: str | None = None
++    attr_6: list[str] = field(default_factory=list)
++    attr_7: Options = field(default_factory=Options)
++    _underscore_attr_1: int = 123
++
++    def do_something(self):
++        print(f""{self.attr_1=}"")
++
++
++result = python_type_to_typescript_schema(Response)
++
++print(f""// Entry point is: '{result.typescript_type_reference}'"")
++print(""// TypeScript Schema:\n"")
++print(result.typescript_schema_str)
++if result.errors:
++    print(""// Errors:"")
++    for err in result.errors:
++        print(f""// - {err}\n"")",,none,none
+4384,pandasai/connectors/airtable.py,"@@ -0,0 +1,92 @@
++""""""
++Airtable connectors are used to connect airtable records.
++""""""
++
++from .base import AirtableConnectorConfig, BaseConnector, BaseConnectorConfig
++from typing import Union, Optional
++import requests
++import pandas as pd
++
++
++class AirtableConnector(BaseConnector):
++    """"""
++    Airtable connector to retrieving record data.
++    """"""
++
++    def __init__(
++        self,
++        config: Optional[Union[AirtableConnectorConfig, dict]] = None,
++    ):
++        if isinstance(config, dict):
++            if config[""token""] and config[""baseID""] and config[""table""]:
++                config = AirtableConnectorConfig(**config)
++
++        elif not config:
++            airtable_env_vars = {
++                ""token"": ""AIRTABLE_AUTH_TOKEN"",
++                ""baseID"": ""AIRTABLE_BASE_ID"",
++                ""table"": ""AIRTABLE_TABLE_NAME"",
++            }
++            config = AirtableConnectorConfig(
++                **self._populate_config_from_env(config, airtable_env_vars)
++            )
++
++        self._root_url: str = ""https://api.airtable.com/v0/""
++
++        super().__init__(config)
++
++    def _init_connection(self, config: BaseConnectorConfig):
++        """"""
++        make connection to database
++        """"""
++        config = config.dict()
++        _session = requests.Session()",Why is `_session` underscored?,question,question
+3268,superduper/base/datalayer.py,"@@ -195,7 +196,7 @@ def backfill_vector_search(self, vi, searcher):
+         if s.CFG.cluster.vector_search.type == 'native':
+             return
+
+-        if s.CFG.cluster.vector_search.uri and not self.server_mode:
++        if s.CFG.cluster.vector_search.uri and not is_csn('vector_search'):",What's this? Please add comments.,question,question
+2972,src/integrations/prefect-github/prefect_github/graphql.py,"@@ -62,8 +79,23 @@ def _subset_return_fields(
+
+
+ @task
+-@sync_compatible
+-async def execute_graphql(
++async def aexecute_graphql(
++    op: Union[Operation, str],
++    github_credentials: GitHubCredentials,
++    error_key: str = ""errors"",
++    **vars,
++) -> Dict[str, Any]:
++    """"""
++    Async version of execute_graphql. See execute_graphql for full documentation.
++    """"""
++    result = await _execute_graphql_op(
++        op, github_credentials, error_key=error_key, **vars
++    )
++    return result
++
++
++@async_dispatch(aexecute_graphql)
++def execute_graphql(",Should this one still be decorated with `@user`?,question,question
+1873,python/mlc_llm/op/batch_spec_verify.py,"@@ -0,0 +1,155 @@
++""""""Operators for batch verify in speculative decoding.""""""
++
++import tvm
++from tvm.relax.frontend.nn import Tensor, op
++from tvm.script import tir as T
++
++# mypy: disable-error-code=""attr-defined,valid-type,name-defined""
++# pylint: disable=too-many-locals,invalid-name,too-many-arguments,too-many-statements
++
++
++def batch_spec_verify(num_nodes, vocab, nbatch):
++    """"""Return the TIR function for batch verify in speculative decoding.""""""
++    TX = 128
++    VEC = 4
++
++    def _var(dtype=""int32""):
++        return T.alloc_buffer((1,), dtype, scope=""local"")
++
++    # fmt: off
++    @T.prim_func(check_well_formed=False, private=True)
++    def _func(
++        draft_probs: T.Buffer((num_nodes, vocab), ""float32""),",shall we use match_buffer so that `num_nodes` can be runtime dynamic?,question,question
+4551,httpie/client.py,"@@ -190,10 +191,37 @@ def finalize_headers(headers: RequestHeadersDict) -> RequestHeadersDict:
+             if isinstance(value, str):
+                 # See <https://github.com/httpie/httpie/issues/212>
+                 value = value.encode()
+-        final_headers[name] = value
++        final_headers.add(name, value)
+     return final_headers
+
+
++def apply_missing_repeated_headers(
++    prepared_request: requests.PreparedRequest,
++    original_headers: RequestHeadersDict
++) -> None:
++    """"""Update the given `prepared_request`'s headers with the original
++    ones. This allows the requests to be prepared as usual, and then later
++    merged with headers that are specified multiple times.""""""
++
++    new_headers = RequestHeadersDict(prepared_request.headers)",Couldn’t we just `.copy()` the headers?,question,question
+2810,openbb_sdk/sdk/core/openbb_core/app/logs/formatters/formatter_with_exceptions.py,"@@ -14,9 +14,7 @@ class FormatterWithExceptions(logging.Formatter):
+
+     DATEFORMAT = ""%Y-%m-%dT%H:%M:%S%z""
+     LOGFORMAT = ""%(asctime)s|%(name)s|%(funcName)s|%(lineno)s|%(message)s""
+-    LOGPREFIXFORMAT = (
+-        ""%(levelname)s|%(appName)s|%(commitHash)s|%(appId)s|%(sessionId)s|%(userId)s|""
+-    )
++    LOGPREFIXFORMAT = ""%(levelname)s|%(appName)s|%(appId)s|%(sessionId)s|%(userId)s|""","This might not be a good idea. Although we're not using the log files anymore but Posthog instead, this would break the CSV structure we have in place.
+I would advocate for us keeping the structure but simply hardcode `unknown-commit` as the ""commitHash"" value.
+
+Wdyt @user ?",question,question
+185,src/openpi/shared/download.py,"@@ -30,6 +40,79 @@ def download(url: str, **kwargs) -> pathlib.Path:
+     return local_path
+
+
+-def download_openpi(url: str) -> pathlib.Path:
+-    """"""Download a file from the OpenPI S3 bucket.""""""
+-    return download(url, s3={""key"": ""<AWS_ACCESS_KEY>"", ""secret"": ""<AWS_SECRET_KEY>""})
++def download_openpi(url: str, *, boto_session: boto3.Session = None, workers: int = 20) -> pathlib.Path:
++    """"""Download a file from the OpenPI S3 bucket using boto3. This is a more performant version of download but can
++    only handle s3 urls. In openpi repo, this is mainly used to access assets in S3 with higher throughput.
++
++    Input:
++        url: URL to openpi checkpoint path.
++        boto_session: Optional boto3 session, will create by default if not provided.
++        workers: number of workers for downloading.
++    Output:
++        pathlib.Path: local path to the downloaded file.
++    """"""
++    cache_dir = _cache_dir()
++    parsed = urlparse(url)
++    if parsed.scheme != ""s3"":
++        raise ValueError(f""URL must be an S3 URL (s3://), got: {url}"")
++
++    s3api = boto3.resource(""s3"")
++    bucket_name = parsed.netloc
++    bucket = s3api.Bucket(bucket_name)
++    prefix = parsed.path.strip(""/"")
++    return_dir = cache_dir / prefix
++
++    objects = list(bucket.objects.filter(Prefix=prefix))
++    total_size = sum(obj.size for obj in objects)
++
++    session = boto_session or boto3.Session()
++    s3t = _get_s3_transfer_manager(session, workers)
++
++    def transfer(
++        s3obj: ObjectSummary, local_path: pathlib.Path, progress_func
++    ) -> s3_transfer_futures.TransferFuture | None:
++        if local_path.exists():
++            local_stat = local_path.stat()
++            if s3obj.size == local_stat.st_size:
++                return None","Do we want to update progress_func here? From what I can tell, the progress bar will ignore already downloaded files and so the end result may look weird.",question,question
+194,src/openpi/training/config.py,"@@ -177,6 +177,9 @@ class TrainConfig:
+     # If true, will enable wandb logging.
+     wandb_enabled: bool = True
+
++    # If true, will enable FSDP.",nit: let's explain what FSDP means?,question,question
+706,olmo/train.py,"@@ -323,50 +341,75 @@ def restore_sharded_checkpoint(self, load_path: PathOrStr):
+         # Zero-gradients to avoid gathering them.
+         self.optim.zero_grad(set_to_none=True)
+
++        load_path = str(load_path).rstrip(""/"")
++
+         with FSDP.state_dict_type(
+             self.fsdp_model,
+             state_dict_type=StateDictType.SHARDED_STATE_DICT,
+             state_dict_config=ShardedStateDictConfig(offload_to_cpu=True),
+             optim_state_dict_config=ShardedOptimStateDictConfig(offload_to_cpu=True),
+         ):
+-            # NOTE: Alternatively we could use the checkpointing method in this test
+-            # https://github.com/pytorch/pytorch/blob/main/test/distributed/checkpoint/test_fsdp_optim_state.py
+-            # but we've had issues with that on AMD GPUs. See
+-            # https://github.com/pytorch/pytorch/issues/100041
+-            # But basically it would look like this.
+-            # Load the serialized state dict in place.
+-            #  state_dict = self.state_dict()
+-            #  del state_dict[""optim""]  # Can't load optimizer together with the model
+-            #  checkpoint.load_state_dict(state_dict, checkpoint.FileSystemReader(load_path))
+-            #  self.fsdp_model.load_state_dict(state_dict[""model""])
+-            # Load other state...
+-            # Load optim state.
+-            #  optim_state = load_sharded_optimizer_state_dict(
+-            #      model_state_dict=state_dict[""model""],
+-            #      optimizer_key=""optim"",
+-            #      storage_reader=checkpoint.FileSystemReader(load_path),
+-            #  )
+-            #  flattened_osd = FSDP.optim_state_dict_to_load(optim_state[""optim""], self.fsdp_model, self.optim)
+-            #  self.optim.load_state_dict(fix_optim_state_dict(self.optim, flattened_osd))
+-
+-            # Deserialize state dictionary.
++            # Load the model state dict in place.
++            log.info(""Loading model state..."")
++            model_state = {""model"": self.fsdp_model.state_dict()}
++            load_state_dict(model_state, RemoteFileSystemReader(f""{load_path}/model_and_optim""))",By the presence of the `model_and_optim` directory will we know that this is a new-style checkpoint?,question,question
+3920,letta/agent.py,"@@ -260,6 +260,7 @@ def _handle_function_error_response(
+         error_msg: str,
+         tool_call_id: str,
+         function_name: str,
++        function_args: str,",I think you meant  `function_args: dict`?,question,question
+218,scripts/serve_policy.py,"@@ -32,11 +32,13 @@ class EnvMode(enum.Enum):
+ class Exported:
+     """"""Load an exported checkpoint.""""""
+
+-    # Checkpoint directory (e.g., ""s3://openpi-assets/exported/pi0_aloha/model"").
++    # Checkpoint directory (e.g., ""s3://openpi-assets/exported/pi0_base/model"").
+     dir: str
+     # Processor name to load the norm stats from. If not provided, will automatically load a processor if there is only
+     # one available. If there are multiple processors, raise an error and ask the user to provide a processor name.
+     processor: str | None = None
++    # Name of the FAST tokenizer to use.",maybe mention that this is only relevant for FAST model checkpoints so people don't get confused?,question,question
+2751,yolox/utils/logger.py,"@@ -241,15 +244,63 @@ def _log_validation_set(self, val_dataset):
+                 id = data_point[3]
+                 img = np.transpose(img, (1, 2, 0))
+                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
++
++                if isinstance(id, torch.Tensor):
++                    id = id.item()
++
+                 self.val_table.add_data(
+-                    id.item(),
++                    id,
+                     self.wandb.Image(img)
+                 )
+
+             self.val_artifact.add(self.val_table, ""validation_images_table"")
+             self.run.use_artifact(self.val_artifact)
+             self.val_artifact.wait()
+
++    def _convert_prediction_format(self, predictions):
++        image_wise_data = defaultdict(int)
++
++        for key, val in predictions.items():
++            img_id = key
++            # print(key, val)
++            # quit()
++            try:
++                bboxes = val[0]
++                cls = val[1]
++                scores = val[2]
++            except KeyError:
++                bboxes = val[""bboxes""]
++                cls = val[""categories""]
++                scores = val[""scores""]
++
++            act_box = []",what does `act` prefix mean here?,question,question
+26,gpt_engineer/chat_to_files.py,"@@ -40,3 +43,83 @@ def to_files(chat, workspace):
+     files = parse_chat(chat)
+     for file_name, file_content in files:
+         workspace[file_name] = file_content
++
++
++def overwrite_files(chat, dbs, replace_files):
++    """"""
++    Replace the AI files to the older local files.
++    """"""
++    dbs.workspace[""all_output.txt""] = chat
++
++    files = parse_chat(chat)
++    for file_name, file_content in files:
++        # Verify if the file created by the AI agent was in the input list
++        if file_name in replace_files:
++            # If the AI created a file from our input list, we replace it.
++            with open(replace_files[file_name], ""w"") as text_file:
++                text_file.write(file_content)
++        else:
++            # If the AI create a new file I don't know where to put it yet
++            # maybe we can think in a smarter solution for this in the future
++            # like asking the AI where to put it.
++            #
++            # by now, just add this to the workspace inside .gpteng folder
++            print(
++                f""Could not find file path for '{file_name}', creating file in workspace""
++            )
++            dbs.workspace[file_name] = file_content",Hm I think workspace should be == cwd no?,question,question
+3249,superduperdb/base/config.py,"@@ -160,12 +160,14 @@ class CronTab(BaseConfig):
+ class Compute(BaseConfig):
+     """"""Describes the configuration for distributed computing.
+
+-    :param uri: The URI for the compute service
+-    :param compute_kwargs: The keyword arguments to pass to the compute service
++    :param uri: The URI for the compute service.
++    :param compute_kwargs: The keyword arguments to pass to the compute service.
++    :param _path: Compute backend path.",Why use `_path` instead of `path`?,question,question
+3285,superduper/components/streamlit.py,"@@ -0,0 +1,45 @@
++import typing as t
++
++from superduper import Component
++
++
++class Streamlit(Component):
++    """"""Streamlit demo function to be deployed on the streamlit server.
++
++    :param demo_func: Callable which builds the demo.
++    :param default: Set to `True` if this is to be the frontpage.
++    """"""
++    type_id: t.ClassVar[str] = 'streamlit'
++    demo_func: t.Callable
++    default: bool = False
++
++    @property
++    def page(self):
++        """"""Get the streamlit page for the multi-page app.""""""
++        import streamlit as st
++        return st.Page(self.demo_func, title=self.identifier, default=self.default)","The demo_func should take `db, *args, **kwargs`, for example
+
+```python
+def demo_func(db **kwargs):
+    model = db.load(""xxx"")
+    # ....
+```
+
+```python
+def page(self):
+    def page_func():
+        self.demo_func(self.db)
+    return st.Page(page_func, title=..., default=...)
+```
+
+
+
+WDYT?",question,question
+2140,official/nlp/modeling/layers/position_embedding.py,"@@ -118,3 +120,75 @@ def call(self, inputs):
+       position_embeddings = self._position_embeddings
+
+     return tf.broadcast_to(position_embeddings, input_shape)
++
++@tf.keras.utils.register_keras_serializable(package=""Text"")
++class RelativePositionEmbedding(tf.keras.layers.Layer):
++  """"""Creates a positional embedding.
++  This layer calculates the position encoding as a mix of sine and cosine
++  functions with geometrically increasing wavelengths. Defined and formulized in
++   ""Attention is All You Need"", section 3.5.
++  (https://arxiv.org/abs/1706.03762).
++  Arguments:
++    hidden_size: Size of the hidden layer.
++    min_timescale: Minimum scale that will be applied at each position
++    max_timescale: Maximum scale that will be applied at each position.
++  """"""
++
++  def __init__(self,
++               hidden_size,
++               min_timescale=1.0,
++               max_timescale=1.0e4,
++               length=None,
++               **kwargs):
++    # We need to have a default dtype of float32, since the inputs (which Keras
++    # usually uses to infer the dtype) will always be int32.
++    # We compute the positional encoding in float32 even if the model uses
++    # float16, as many of the ops used, like log and exp, are numerically
++    # unstable in float16.
++    if ""dtype"" not in kwargs:
++      kwargs[""dtype""] = ""float32""
++
++    super(RelativePositionEmbedding, self).__init__(**kwargs)
++    self._hidden_size = hidden_size
++    self._min_timescale = min_timescale
++    self._max_timescale = max_timescale
++    self._length = length
++
++  def get_config(self):
++    config = {
++        ""hidden_size"": self._hidden_size,
++        ""min_timescale"": self._min_timescale,
++        ""max_timescale"": self._max_timescale,
++        ""length"": self._length,
++    }
++    base_config = super(RelativePositionEmbedding, self).get_config()
++    return dict(list(base_config.items()) + list(config.items()))
++
++  def build(self, input_shape):
++    """"""Implements build() for the layer.""""""
++    super(RelativePositionEmbedding, self).build(input_shape)
++
++  def call(self, inputs):
++    """"""Implements call() for the layer.""""""
++    length = self._length
++    if inputs is None and length is None:
++      raise ValueError(
++          ""If inputs is None, `length` must be set in ""
++          ""RelativePositionEmbedding()."")
++    if inputs is not None:
++      input_shape = tf_utils.get_shape_list(inputs)
++      length = input_shape[1]","how about raising an error if self._length is also specified, but not equal to input_shape[1]?",question,question
+5191,unsloth/models/vision.py,"@@ -654,18 +654,25 @@ def from_pretrained(
+             raise RuntimeError(
+                 ""Unsloth: Can only load in 4bit or 8bit or 16bit, not a combination!""
+             )
++        _skip_modules = SKIP_QUANTIZATION_MODULES.copy()
++        # Nemotron-H uses 'mixer' (not 'mamba') for Mamba layers.
++        # Mamba fused kernels pass out_proj.weight directly to F.linear,
++        # which fails with quantized Params4bit. Skip out_proj from quantization.
++        if any(mt == ""nemotron_h"" for mt in (model_types or [])):",NIT: can't this just be `if nemotron_h in model_types`?,question,question
+2089,src/manager/app/models/ragapp.py,"@@ -35,6 +35,7 @@ def get_default_app_environment(app_name: str) -> Dict[str, str]:
+         ""MODEL"": ""gpt-4o-mini"",
+         ""EMBEDDING_MODEL"": ""text-embedding-3-small"",
+         ""EMBEDDING_DIM"": ""1024"",
++        ""CHAT_REQUEST_LIMIT_THRESHOLD"": ""20"",  # 20 chat requests per day",how about we pass this via manager ENV `CHAT_REQUEST_LIMIT_THRESHOLD`?,question,question
+812,scripts/flops_by_perf_figure.py,"@@ -0,0 +1,235 @@
++""""""
++
++Plotting the FLOPS by performance figure
++
++Don't forget to run `pip install -e '.[figures]'` to install the necessary dependencies.
++
++@kylel
++
++""""""
++
++import matplotlib.pyplot as plt
++import numpy as np
++import pandas as pd
++
++RESULTS_DATA_PATH = ""/Users/kylel/ai2/olmo/olmo2.csv""
++OUTPUT_PATHS = [""/Users/kylel/ai2/olmo/olmo2.pdf"", ""/Users/kylel/ai2/olmo/olmo2.png""]",Hardcoded paths to your machine?,question,question
+4527,httpie/output/streams.py,"@@ -136,7 +138,16 @@ def __init__(
+         super().__init__(**kwargs)
+         self.formatting = formatting
+         self.conversion = conversion
+-        self.mime = self.msg.content_type.split(';')[0]
++        self.msg_type = 'request' if isinstance(self.msg, HTTPRequest) else 'response'",Why is this needed? We won’t have the format option for requests.,question,question

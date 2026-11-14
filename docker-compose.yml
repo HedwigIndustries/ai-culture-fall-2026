@@ -1,0 +1,28 @@
+# В Docker работает только агент. Данные и ноутбуки — локально через uv (см. openspec/context/local-dev.md).
+#   docker compose up --build agent-api      — API агента: http://localhost:8000/docs
+#   docker compose run --rm --build agent-check — тесты агента
+# Если Docker выходит в интернет только через прокси: BUILD_PROXY=http://http.docker.internal:3128 docker compose ...
+
+services:
+  agent-api:
+    build:
+      context: .
+      target: runtime
+      args:
+        HTTPS_PROXY: ${BUILD_PROXY:-}
+    environment:
+      MR_REVIEWER_LLM: ${MR_REVIEWER_LLM:-none}
+      HTTPS_PROXY: ${BUILD_PROXY:-}
+    env_file:
+      - path: agent/.env   # ключи LLM; в образ не попадают
+        required: false
+    ports:
+      - "8000:8000"
+
+  agent-check:
+    build:
+      context: .
+      target: test
+      args:
+        HTTPS_PROXY: ${BUILD_PROXY:-}
+    profiles: ["test"]

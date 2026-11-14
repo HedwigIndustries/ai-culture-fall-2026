@@ -1,0 +1,25 @@
+diff --git a/payments/service/limits.py b/payments/service/limits.py
+index 1a2b3c4..5d6e7f8 100644
+--- a/payments/service/limits.py
++++ b/payments/service/limits.py
+@@ -1,7 +1,18 @@
++from __future__ import annotations
++
+ from decimal import Decimal, ROUND_HALF_EVEN
+
+ DAILY_LIMIT = Decimal("600000.00")
++CENT = Decimal("0.01")
+
+
+-def remaining_limit(spent):
+-    return DAILY_LIMIT - spent
++def remaining_limit(spent: Decimal) -> Decimal:
++    """Остаток дневного лимита; отрицательный остаток не возвращаем."""
++    rest = (DAILY_LIMIT - spent).quantize(CENT, rounding=ROUND_HALF_EVEN)
++    return max(rest, Decimal("0.00"))
++
++
++def can_spend(spent: Decimal, amount: Decimal) -> bool:
++    if amount <= 0:
++        raise ValueError("amount must be positive")
++    return amount <= remaining_limit(spent)

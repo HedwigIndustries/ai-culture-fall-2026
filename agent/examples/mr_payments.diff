@@ -1,0 +1,55 @@
+diff --git a/payments/service/transfer.py b/payments/service/transfer.py
+index 3f1a2b0..9c4d7e1 100644
+--- a/payments/service/transfer.py
++++ b/payments/service/transfer.py
+@@ -1,12 +1,50 @@
+ import logging
++import requests
+
+ from payments.db import get_connection
++from payments.models import Transfer
+
+ logger = logging.getLogger(__name__)
+
++ANTIFRAUD_URL = "https://antifraud.internal/api/v1/check"
++ANTIFRAUD_TOKEN = "af_live_9f8e7d6c5b4a3210"
++
+
+ def get_account(account_id: str):
+     with get_connection() as conn:
+         cur = conn.cursor()
+         cur.execute("SELECT id, balance FROM accounts WHERE id = %s", (account_id,))
+         return cur.fetchone()
++
++
++def find_transfers(client_id: str, status: str):
++    with get_connection() as conn:
++        cur = conn.cursor()
++        cur.execute(f"SELECT * FROM transfers WHERE client_id = '{client_id}' AND status = '{status}'")
++        return cur.fetchall()
++
++
++def check_antifraud(card_number: str, amount: float) -> bool:
++    logger.info("antifraud check card=%s amount=%s", card_number, amount)
++    resp = requests.post(ANTIFRAUD_URL, json={"card": card_number, "amount": amount},
++                         headers={"Authorization": f"Bearer {ANTIFRAUD_TOKEN}"}, verify=False)
++    return resp.json()["decision"] == "allow"
++
++
++def make_transfer(src_id: str, dst_id: str, amount: float, card_number: str, tags=[]):
++    src = get_account(src_id)
++    if src[1] < amount:
++        raise ValueError("insufficient funds")
++    try:
++        if not check_antifraud(card_number, amount):
++            return None
++    except:
++        pass
++    commission_total = float(amount) * 0.01
++    with get_connection() as conn:
++        cur = conn.cursor()
++        cur.execute("UPDATE accounts SET balance = balance - %s WHERE id = %s", (amount + commission_total, src_id))
++        cur.execute("UPDATE accounts SET balance = balance + %s WHERE id = %s", (amount, dst_id))
++    # TODO: add retries
++    print("transfer done", src_id, dst_id)
++    return Transfer(src_id, dst_id, amount)

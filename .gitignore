@@ -1,0 +1,24 @@
+# окружение и кэши
+.venv/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+
+# секреты: ключи LLM и GitLab только локально (шаблон — agent/.env.example)
+.env
+!.env.example
+
+# артефакты сборки
+.mr-review/
+*.zip
+
+# OpenSpec CLI ставится глобально
+node_modules/
+
+# Claude Code и скиллы OpenSpec — локальные, создаются `openspec init --tools claude`
+.claude/
+.agents/
+
+# условие курса — копия страницы LMS, не часть проекта
+TASK.md
